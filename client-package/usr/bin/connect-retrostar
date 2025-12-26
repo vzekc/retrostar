@@ -4,6 +4,8 @@ set -e
 
 CONFIG=/etc/retrostar/openvpn.conf
 
+[ -f /etc/default/retrostar ] && . /etc/default/retrostar
+
 if [ $EUID -ne 0 ]
 then
     echo "$0: Dieses Skript muss mit 'sudo' aufgerufen werden" >&2
@@ -21,6 +23,9 @@ if ! ip link show br0 &>/dev/null
 then
     brctl addbr br0
     ifconfig br0 up
+    if [ -n "$BRIDGE_IP" ]; then
+        ip addr add "$BRIDGE_IP" dev br0
+    fi
     brctl addif br0 eth0
     ifconfig eth0 up
 fi
