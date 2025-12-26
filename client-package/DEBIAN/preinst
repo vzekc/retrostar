@@ -12,7 +12,7 @@ is_ssh_process() {
     local pid=$1
     local comm
     read -r comm < "/proc/$pid/comm"
-    [ "$comm" == "sshd" ]
+    [ "$comm" == "sshd" ] || [ "$comm" == "sshd-session" ]
 }
 
 is_ssh6_connection() {
