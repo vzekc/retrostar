@@ -1,0 +1,54 @@
+<link rel="stylesheet" href="/decnet.css">
+
+<h3>DECnet-Adressverzeichnis (Area 23)</h3>
+
+<p>
+  Dieses Verzeichnis zeigt die zugewiesenen DECnet-Adressbereiche in Area 23.
+  Jedes Mitglied kann sich einen Block von 10 Adressen zuweisen lassen.
+</p>
+
+<div id="decnet-app">
+  <table id="blocks-table">
+    <thead>
+    <tr>
+      <th>Bereich</th>
+      <th>Besitzer</th>
+      <th>Hosts</th>
+      <% if (typeof user === 'object' && user.is_admin) { %>
+      <th>Admin</th>
+      <% } %>
+    </tr>
+    </thead>
+    <tbody id="blocks-body">
+    </tbody>
+  </table>
+
+  <div id="allocate-section" style="display:none">
+    <h4>Block zuweisen</h4>
+    <p>Du hast noch keinen DECnet-Adressblock. Klicke hier, um Dir einen Block von 10 Adressen zuweisen zu lassen.</p>
+    <button id="allocate-btn" class="function">Block zuweisen</button>
+  </div>
+
+  <% if (typeof user === 'object' && user.is_admin) { %>
+  <div id="admin-section">
+    <h4>Admin: Block zuweisen</h4>
+    <form id="admin-allocate-form">
+      <label>Benutzername: <input type="text" id="admin-username" required></label>
+      <label>Von: <input type="number" id="admin-start" min="20" max="1023" required></label>
+      <label>Bis: <input type="number" id="admin-end" min="20" max="1023" required></label>
+      <button type="submit" class="function">Zuweisen</button>
+    </form>
+  </div>
+  <% } %>
+
+  <div id="error-message" class="error" style="display:none"></div>
+</div>
+
+<script>
+  window.DECNET_USER = <%-
+    typeof user === 'object'
+      ? JSON.stringify({ id: user.id, username: user.username, is_admin: user.is_admin || false })
+      : 'null'
+  %>;
+</script>
+<script src="/js/decnet.js"></script>

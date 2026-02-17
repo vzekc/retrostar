@@ -1,0 +1,127 @@
+#decnet-app label {
+  display: inline-block;
+  margin-right: 12px;
+}
+
+#decnet-app label input {
+  font-size: 16px;
+  padding: 4px 8px;
+  width: 120px;
+}
+
+#admin-username {
+  width: 180px !important;
+}
+
+.host-list {
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.host-entry {
+  display: inline-block;
+  margin: 2px 4px;
+  padding: 2px 8px;
+  background-color: #e8f4e8;
+  border-radius: 4px;
+}
+
+.host-entry .host-name {
+  font-weight: bold;
+}
+
+.host-entry .host-node {
+  color: #666;
+  font-size: 14px;
+}
+
+.host-entry .remove-host {
+  cursor: pointer;
+  color: #c00;
+  margin-left: 4px;
+  border: 0;
+  background: none;
+  font-size: 14px;
+}
+
+.host-entry .remove-host:hover {
+  color: #f00;
+}
+
+.node-btn {
+  display: inline-block;
+  margin: 2px;
+  padding: 2px 6px;
+  font-size: 13px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  cursor: pointer;
+  color: #333;
+  font-family: monospace;
+}
+
+.node-btn:hover {
+  background-color: #d0e8ff;
+  border-color: #09f;
+}
+
+.node-btn.named {
+  background-color: #c0e0c0;
+  border-color: #090;
+  font-weight: bold;
+}
+
+.name-input {
+  font-size: 14px;
+  padding: 2px 4px;
+  width: 80px;
+  font-family: monospace;
+  text-transform: uppercase;
+}
+
+button.function {
+  background-color: #09f;
+  color: #fff;
+  border: 0;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button.function:hover {
+  background-color: #07d;
+}
+
+.admin-actions button {
+  font-size: 13px;
+  padding: 4px 8px;
+  margin: 2px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background-color: #f8f8f8;
+}
+
+.admin-actions button:hover {
+  background-color: #e0e0e0;
+}
+
+.error {
+  color: #c00;
+  padding: 8px;
+  margin-top: 8px;
+}
+
+#admin-section {
+  margin-top: 24px;
+  padding: 16px;
+  background-color: #fff8f0;
+  border: 1px solid #e0d0c0;
+  border-radius: 4px;
+}
+
+#admin-section h4 {
+  margin-top: 0;
+}

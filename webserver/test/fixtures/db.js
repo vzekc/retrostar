@@ -1,11 +1,12 @@
 const util = require('node:util')
 const exec = util.promisify(require('node:child_process').exec)
 const path = require('path')
+
+process.env.PGDATABASE = `retrostar-test-${process.pid}`
+
 const db = require('../../src/db')
 
 const migrateScript = path.join(__dirname, '../../../db/migrate.sh')
-
-process.env.PGDATABASE = `retrostar-test-${process.pid}`
 
 const up = async () => {
   await exec(`createdb ${process.env.PGDATABASE}`)

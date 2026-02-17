@@ -84,6 +84,10 @@ const verifyForumLogin = async (
         'Dieses System ist nur für Mitglieder des VzEkC e.V. zugänglich.',
     })
   }
+  const isAdmin = /^(Vorstand|Administrator)$/.test(claims.rank)
+  if (userId) {
+    await db.setUserAdmin(userId, isAdmin)
+  }
   await event.publish(
     'web-login',
     `${username} hat sich über das Forum auf dem Webserver angemeldet.`,
@@ -92,6 +96,7 @@ const verifyForumLogin = async (
   return verified(null, {
     username: username,
     id: userId,
+    is_admin: isAdmin,
   })
 }
 
@@ -436,6 +441,144 @@ router.post('/logout', (ctx) => {
     )
   }
   ctx.logout(() => ctx.redirect('/'))
+})
+
+// Admin middleware
+const isAdmin = async (ctx, next) => {
+  if (ctx.isAuthenticated() && ctx.state.user?.is_admin) {
+    await next()
+  } else {
+    ctx.status = 403
+    ctx.body = 'Forbidden'
+  }
+}
+
+// DECnet address management
+
+router.get('/decnet', isAuthenticated, async (ctx, next) => {
+  await next()
+})
+
+router.get('/api/decnet/blocks', async (ctx) => {
+  const blocks = await db.getDecnetBlocks(ctx.state.db)
+  ctx.body = blocks
+})
+
+router.post('/api/decnet/blocks', isAuthenticated, async (ctx) => {
+  const client = ctx.state.db
+  const user = ctx.state.user
+
+  if (user.is_admin && ctx.request.body.username) {
+    const { username, start_node, end_node } = ctx.request.body
+    if (!username || !start_node || !end_node) {
+      ctx.status = 400
+      ctx.body = { error: 'username, start_node, and end_node are required' }
+      return
+    }
+    const block = await db.adminAllocateDecnetBlock(
+      client,
+      username,
+      start_node,
+      end_node
+    )
+    if (!block) {
+      ctx.status = 404
+      ctx.body = { error: 'User not found' }
+      return
+    }
+    ctx.status = 201
+    ctx.body = block
+  } else {
+    const count = await db.getUserBlockCount(client, user.id)
+    if (count >= 1) {
+      ctx.status = 409
+      ctx.body = { error: 'You already have an allocated block' }
+      return
+    }
+    const block = await db.allocateDecnetBlock(client, user.id)
+    if (!block) {
+      ctx.status = 409
+      ctx.body = { error: 'No free address range available' }
+      return
+    }
+    ctx.status = 201
+    ctx.body = block
+  }
+})
+
+router.delete('/api/decnet/blocks/:id', isAdmin, async (ctx) => {
+  const block = await db.releaseDecnetBlock(ctx.state.db, ctx.params.id)
+  if (!block) {
+    ctx.status = 404
+    ctx.body = { error: 'Block not found' }
+    return
+  }
+  ctx.status = 204
+})
+
+router.put('/api/decnet/blocks/:id', isAdmin, async (ctx) => {
+  const { username } = ctx.request.body
+  if (!username) {
+    ctx.status = 400
+    ctx.body = { error: 'username is required' }
+    return
+  }
+  const block = await db.reassignDecnetBlock(
+    ctx.state.db,
+    ctx.params.id,
+    username
+  )
+  if (!block) {
+    ctx.status = 404
+    ctx.body = { error: 'Block or user not found' }
+    return
+  }
+  ctx.body = block
+})
+
+router.put('/api/decnet/hosts/:nodeNumber', isAuthenticated, async (ctx) => {
+  const { name } = ctx.request.body
+  if (!name) {
+    ctx.status = 400
+    ctx.body = { error: 'name is required' }
+    return
+  }
+  const nodeNumber = parseInt(ctx.params.nodeNumber)
+  const host = await db.setDecnetHostName(
+    ctx.state.db,
+    ctx.state.user.id,
+    nodeNumber,
+    name
+  )
+  if (!host) {
+    ctx.status = 403
+    ctx.body = { error: 'You do not own a block containing this node' }
+    return
+  }
+  ctx.body = host
+})
+
+router.delete('/api/decnet/hosts/:nodeNumber', isAuthenticated, async (ctx) => {
+  const nodeNumber = parseInt(ctx.params.nodeNumber)
+  // Verify ownership
+  const blockResult = await ctx.state.db.query(
+    `SELECT b.id FROM decnet_block b
+     WHERE b.user_id = $1
+       AND $2 BETWEEN b.start_node AND b.end_node`,
+    [ctx.state.user.id, nodeNumber]
+  )
+  if (blockResult.rows.length === 0 && !ctx.state.user.is_admin) {
+    ctx.status = 403
+    ctx.body = { error: 'You do not own a block containing this node' }
+    return
+  }
+  const host = await db.removeDecnetHostName(ctx.state.db, nodeNumber)
+  if (!host) {
+    ctx.status = 404
+    ctx.body = { error: 'Host not found' }
+    return
+  }
+  ctx.status = 204
 })
 
 // Article upload/download

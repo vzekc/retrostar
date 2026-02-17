@@ -65,7 +65,7 @@ const checkPassword = async (username, password) =>
       return null
     }
     const user = await client.query(
-      'SELECT id, name AS username FROM "user" WHERE name = $1',
+      'SELECT id, name AS username, is_admin FROM "user" WHERE name = $1',
       [username]
     )
     return user.rows[0]
@@ -204,14 +204,16 @@ const getHost = async (macAddress) =>
     const rows = result.rows.map((row) => {
       return {
         ...row,
-        protocols: row.protocols.filter((proto) => proto).map((proto) => {
-          const fields = proto.split(',', 3)
-          return {
-            number: parseInt(fields[0]),
-            name: fields[1],
-            description: fields[2],
-          }
-        }),
+        protocols: row.protocols
+          .filter((proto) => proto)
+          .map((proto) => {
+            const fields = proto.split(',', 3)
+            return {
+              number: parseInt(fields[0]),
+              name: fields[1],
+              description: fields[2],
+            }
+          }),
       }
     })
     return rows[0]
@@ -276,6 +278,161 @@ const getUserId = async (username) =>
     return result.rows[0]?.id
   })
 
+const getDecnetBlocks = async (client) => {
+  const result = await client.query(
+    `SELECT
+       b.id,
+       b.start_node,
+       b.end_node,
+       b.user_id,
+       u.name AS owner,
+       b.created_at,
+       COALESCE(
+         json_agg(
+           json_build_object('node_number', h.node_number, 'name', h.name)
+           ORDER BY h.node_number
+         ) FILTER (WHERE h.node_number IS NOT NULL),
+         '[]'
+       ) AS hosts
+     FROM decnet_block b
+     JOIN "user" u ON u.id = b.user_id
+     LEFT JOIN decnet_host h ON h.block_id = b.id
+     GROUP BY b.id, u.name
+     ORDER BY b.start_node`
+  )
+  return result.rows
+}
+
+const allocateDecnetBlock = async (client, userId) => {
+  // Find next available contiguous range of 10 addresses starting from 20
+  const result = await client.query(
+    `SELECT start_node, end_node FROM decnet_block ORDER BY start_node`
+  )
+  const blocks = result.rows
+
+  let candidate = 20
+  for (const block of blocks) {
+    if (candidate + 9 < block.start_node) {
+      break
+    }
+    candidate = Math.max(candidate, block.end_node + 1)
+  }
+
+  if (candidate + 9 > 1023) {
+    return null
+  }
+
+  const insert = await client.query(
+    `INSERT INTO decnet_block (user_id, start_node, end_node)
+     VALUES ($1, $2, $3)
+     RETURNING *`,
+    [userId, candidate, candidate + 9]
+  )
+  return insert.rows[0]
+}
+
+const adminAllocateDecnetBlock = async (
+  client,
+  username,
+  startNode,
+  endNode
+) => {
+  // Ensure user exists
+  let userResult = await client.query(`SELECT id FROM "user" WHERE name = $1`, [
+    username,
+  ])
+  if (userResult.rows.length === 0) {
+    return null
+  }
+  const userId = userResult.rows[0].id
+
+  const insert = await client.query(
+    `INSERT INTO decnet_block (user_id, start_node, end_node)
+     VALUES ($1, $2, $3)
+     RETURNING *`,
+    [userId, startNode, endNode]
+  )
+  return insert.rows[0]
+}
+
+const releaseDecnetBlock = async (client, blockId) => {
+  const result = await client.query(
+    `DELETE FROM decnet_block WHERE id = $1 RETURNING *`,
+    [blockId]
+  )
+  return result.rows[0]
+}
+
+const reassignDecnetBlock = async (client, blockId, username) => {
+  const userResult = await client.query(
+    `SELECT id FROM "user" WHERE name = $1`,
+    [username]
+  )
+  if (userResult.rows.length === 0) {
+    return null
+  }
+  const result = await client.query(
+    `UPDATE decnet_block SET user_id = $1 WHERE id = $2 RETURNING *`,
+    [userResult.rows[0].id, blockId]
+  )
+  return result.rows[0]
+}
+
+const setDecnetHostName = async (client, userId, nodeNumber, name) => {
+  // Verify user owns the block containing this node
+  const blockResult = await client.query(
+    `SELECT b.id FROM decnet_block b
+     WHERE b.user_id = $1
+       AND $2 BETWEEN b.start_node AND b.end_node`,
+    [userId, nodeNumber]
+  )
+  if (blockResult.rows.length === 0) {
+    return null
+  }
+
+  const result = await client.query(
+    `INSERT INTO decnet_host (node_number, block_id, name)
+     VALUES ($1, $2, $3)
+     ON CONFLICT (node_number) DO UPDATE SET name = $3
+     RETURNING *`,
+    [nodeNumber, blockResult.rows[0].id, name]
+  )
+  return result.rows[0]
+}
+
+const removeDecnetHostName = async (client, nodeNumber) => {
+  const result = await client.query(
+    `DELETE FROM decnet_host WHERE node_number = $1 RETURNING *`,
+    [nodeNumber]
+  )
+  return result.rows[0]
+}
+
+const getUserBlockCount = async (client, userId) => {
+  const result = await client.query(
+    `SELECT COUNT(*) AS count FROM decnet_block WHERE user_id = $1`,
+    [userId]
+  )
+  return parseInt(result.rows[0].count)
+}
+
+const setUserAdmin = async (userId, isAdmin) =>
+  withClient(async (client) => {
+    await client.query(`UPDATE "user" SET is_admin = $1 WHERE id = $2`, [
+      isAdmin,
+      userId,
+    ])
+  })
+
+const getUserAdmin = async (userId) =>
+  withClient(async (client) => {
+    const result = await client.query(
+      `SELECT is_admin FROM "user" WHERE id = $1`,
+      [userId]
+    )
+    return result.rows[0]?.is_admin || false
+  })
+
 module.exports = {
   connect,
   closePool,
@@ -295,4 +452,14 @@ module.exports = {
   updateHostProtocols,
   getProtocols,
   getUserId,
+  getDecnetBlocks,
+  allocateDecnetBlock,
+  adminAllocateDecnetBlock,
+  releaseDecnetBlock,
+  reassignDecnetBlock,
+  setDecnetHostName,
+  removeDecnetHostName,
+  getUserBlockCount,
+  setUserAdmin,
+  getUserAdmin,
 }
