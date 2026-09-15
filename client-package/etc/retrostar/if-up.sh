@@ -6,6 +6,6 @@ PATH=/usr/sbin:/usr/bin
 
 IF=$1
 
-brctl addif br0 $IF
-ifconfig $IF up
+ip link set $IF master br0
+ip link set $IF up
 ip -6 addr flush $IF

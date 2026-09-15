@@ -19,16 +19,6 @@ then
 fi
 
 modprobe ebtable_filter
-if ! ip link show br0 &>/dev/null
-then
-    brctl addbr br0
-    ifconfig br0 up
-    if [ -n "$BRIDGE_IP" ]; then
-        ip addr add "$BRIDGE_IP" dev br0
-    fi
-    brctl addif br0 eth0
-    ifconfig eth0 up
-fi
 
 ebtables --flush
 ebtables -A FORWARD --protocol arp -j DROP
