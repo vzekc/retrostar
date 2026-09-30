@@ -15,7 +15,7 @@ is one. [`router.yml`](router.yml) sets them up:
 | `usb_wifi` | keeps the wrong drivers off a wifi dongle | `usb_wifi_blacklist` |
 | `retrostar_client` | `retrostar-client` from the RetroStar apt repository, its configuration fetched with the installation key | `retrostar_install_key_file` |
 | `mop` | `mopd` on the bridge, serving files from [`files/mop`](files/mop) | `mop_files` |
-| `lat` | `latd` on the bridge with the services it offers | `lat_services`, `lat_packages` |
+| `lat` | `latd` on the bridge with the services it offers | `lat_services`, `lat_packages`, `lat_issue` |
 
 and any roles a router names in `router_extra_roles`, from
 [`requirements.yml`](requirements.yml) — its operator's account, say.

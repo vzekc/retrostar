@@ -11,6 +11,13 @@
     mode: '0644'
   notify: restart latd
 
+- name: Set the greeting a session starts with
+  # Read afresh for every session.
+  copy:
+    dest: /etc/issue.lat
+    content: '{{ lat_issue }}'
+    mode: '0644'
+
 - name: Configure the services
   template:
     src: latd.conf.j2
