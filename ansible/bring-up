@@ -41,6 +41,7 @@ USER_NAME=$(setting ansible_user)
 ARCH=$(setting router_image arm64)
 WIFI_BLACKLIST=$(setting usb_wifi_blacklist)
 WIFI_DRIVER=$(setting usb_wifi_driver)
+SHELL_PATH=$(setting router_shell /bin/bash)
 [ -n "$USER_NAME" ] || die "$NAME has no ansible_user in inventory/hosts.ini"
 
 case $ARCH in
@@ -94,8 +95,8 @@ image() {
 
 # ── card ─────────────────────────────────────────────────────────────────────
 
-# The first-boot configuration: the account and the wifi, a wifi dongle on its
-# driver before the network comes up, and no automatic connection on the
+# The first-boot configuration: the account with its shell and the wifi, a
+# wifi dongle on its driver before the network comes up, and no automatic connection on the
 # Ethernet port, so it never takes the default route.
 first_boot_files() {
     local dir=$1 hash keys
@@ -109,6 +110,9 @@ hostname: $NAME
 manage_etc_hosts: true
 packages:
 - avahi-daemon
+EOF
+        [ "$SHELL_PATH" = /bin/bash ] || echo "- $(basename "$SHELL_PATH")"
+        cat <<EOF
 apt:
   preserve_sources_list: true
 timezone: Europe/Berlin
@@ -131,7 +135,7 @@ write_files:
 users:
 - name: $USER_NAME
   groups: users,adm,dialout,audio,netdev,video,plugdev,cdrom,games,input,gpio,spi,i2c,render,sudo
-  shell: /bin/bash
+  shell: $SHELL_PATH
 EOF
         if [ -n "$hash" ]; then
             printf "  lock_passwd: false\n  passwd: '%s'\n" "$hash"
@@ -184,7 +188,13 @@ card() {
     sleep 3
     diskutil unmountDisk "/dev/$disk" >/dev/null 2>&1 || true
     say "writing the first-boot files"
-    sudo env MTOOLS_SKIP_CHECK=1 mcopy -o -i "/dev/${disk}s1" "$tmp/user-data" "$tmp/network-config" "$tmp/meta-data" ::/
+    # The image's first-boot user dialog is masked from the start. cloud-init
+    # creates the account and masks it too, but only once its start is queued,
+    # and systemd reports that start as failed.
+    sudo env MTOOLS_SKIP_CHECK=1 mcopy -n -i "/dev/${disk}s1" ::/cmdline.txt "$tmp/cmdline.txt"
+    grep -q 'systemd.mask=userconfig.service' "$tmp/cmdline.txt" ||
+        sed -i '' '1s/$/ systemd.mask=userconfig.service/' "$tmp/cmdline.txt"
+    sudo env MTOOLS_SKIP_CHECK=1 mcopy -o -i "/dev/${disk}s1" "$tmp/user-data" "$tmp/network-config" "$tmp/meta-data" "$tmp/cmdline.txt" ::/
     sudo env MTOOLS_SKIP_CHECK=1 mdir -i "/dev/${disk}s1" ::/user-data ::/network-config ::/meta-data
     rm -rf "$tmp"
     diskutil eject "/dev/$disk"

@@ -3,8 +3,9 @@
 # package-version PACKAGE [SUITE]
 #
 # The version PACKAGE is built as. The revision counts the commits that touched
-# packages/PACKAGE, so a package gets a new version exactly when its source
-# changes, and apt upgrades it only then. With a SUITE, the version carries the
+# packages/PACKAGE or the base versions, so a package gets a new version
+# exactly when its source or its base version changes, and apt upgrades it
+# only then. With a SUITE, the version carries the
 # Debian release it was built for, so the bookworm and trixie builds of one
 # source get different file names in the repository.
 
@@ -16,7 +17,7 @@ suite=${2:-}
 
 base=$(awk -v p="$package" '$1 == p { print $2 }' packages/versions)
 [ -n "$base" ] || { echo "package-version: no base version for $package" >&2; exit 1; }
-count=$(git rev-list --count HEAD -- "packages/$package")
+count=$(git rev-list --count HEAD -- "packages/$package" packages/versions)
 
 case $suite in
     '') echo "$base-$count" ;;

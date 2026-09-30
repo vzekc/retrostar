@@ -1,6 +1,7 @@
 # Base version of each package. The build appends the number of commits that
 # touched the package's directory, and latd and mopd also the Debian release
-# they are built for: latd 1.31-12+deb13.
-latd 1.31
+# they are built for: mopd 2.5.3-12+deb13. latd carries an epoch, so it wins
+# over the older upstream's 1.35 that Raspberry Pi OS still ships.
+latd 1:1.31
 mopd 2.5.3
 retrostar-client 1.1

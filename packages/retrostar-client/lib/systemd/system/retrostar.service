@@ -5,6 +5,9 @@ After=network-online.target
 [Service]
 Type=simple
 ExecStart=/usr/bin/connect-retrostar
+# At boot the wifi may not be up yet; the tunnel is tried again until it is.
+Restart=on-failure
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target

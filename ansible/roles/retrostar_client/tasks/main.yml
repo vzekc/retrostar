@@ -63,3 +63,18 @@
     name: retrostar
     state: started
     enabled: true
+
+- name: Check that the tunnel stays up
+  # A client that fails to connect exits shortly after it starts.
+  command: systemctl is-active retrostar
+  register: retrostar_active
+  changed_when: false
+  failed_when: false
+  retries: 3
+  delay: 10
+  until: retrostar_active.stdout == 'active'
+
+- name: Refuse to go on without the tunnel
+  fail:
+    msg: "retrostar.service is {{ retrostar_active.stdout }}; see journalctl -u retrostar"
+  when: retrostar_active.stdout != 'active'

@@ -9,6 +9,16 @@
 - name: Set up RetroStar routers
   hosts: routers
   become: true
+  pre_tasks:
+    # The router's own roles first: its operator's account is in place before
+    # anything else is set up.
+    - name: Run the router's own roles
+      include_role:
+        name: '{{ router_role }}'
+      loop: '{{ router_extra_roles }}'
+      loop_control:
+        loop_var: router_role
+      tags: extra
   roles:
     - role: usb_wifi
       tags: wifi
@@ -20,9 +30,3 @@
     - role: lat
       tags: lat
       when: lat_services | length > 0
-  tasks:
-    - name: Run the router's own roles
-      include_role:
-        name: '{{ item }}'
-      loop: '{{ router_extra_roles }}'
-      tags: extra

@@ -18,7 +18,12 @@ then
     exit 1
 fi
 
-modprobe ebtable_filter
+# Legacy ebtables needs its filter table loaded; ebtables-nft, the default
+# since bookworm, loads what it needs itself, and newer kernels lack the
+# legacy module.
+if ! ebtables --version | grep -q nf_tables; then
+    modprobe ebtable_filter
+fi
 
 ebtables --flush
 ebtables -A FORWARD --protocol arp -j DROP

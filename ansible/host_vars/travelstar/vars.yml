@@ -4,6 +4,7 @@
 # fotofix's serial agent. It reaches the internet over an Edimax EW-7811Un.
 
 router_image: armhf
+router_shell: /bin/zsh
 router_extra_roles: [operator]
 operator_groups: [users, sudo, adm, dialout, netdev]
 

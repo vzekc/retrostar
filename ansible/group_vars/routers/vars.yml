@@ -9,6 +9,10 @@ ansible_ssh_extra_args: -o AddressFamily=inet
 # for a Pi 2.
 router_image: arm64
 
+# The operator account's login shell, set on the card's first boot; a shell
+# other than bash is installed then too.
+router_shell: /bin/bash
+
 # Roles from requirements.yml the router runs besides the RetroStar ones,
 # such as its operator's account.
 router_extra_roles: []

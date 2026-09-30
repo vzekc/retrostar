@@ -24,7 +24,8 @@ and any roles a router names in `router_extra_roles`, from
 ## A new router
 
 1. Add it to `inventory/hosts.ini` and write its `host_vars/<name>/vars.yml`.
-   `router_image` is `arm64` for a Pi 3 or later, `armhf` for a Pi 2.
+   `router_image` is `arm64` for a Pi 3 or later, `armhf` for a Pi 2;
+   `router_shell` is the account's login shell, bash unless it names another.
 2. Put what the repository does not hold into `~/.config/retrostar/<name>/`:
    `authorized_keys`, `wifi` (one `ssid<TAB>password` a line), `install-key`
    (from https://retrostar.classic-computing.de/installation), and optionally
