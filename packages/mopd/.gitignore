@@ -1,0 +1,9 @@
+*.o
+common/libcommon.a
+common/version.c
+mopchk/mopchk
+mopcopy/mopcopy
+mopd/mopd
+mopprobe/mopprobe
+moptrace/moptrace
+ultrix/mkultconf

@@ -1,0 +1,7 @@
+# Options for mopd: -a serves every Ethernet interface; name one instead to
+# serve only that, e.g. a RetroStar client's bridge:
+#
+#   MOPD_OPTIONS="br0"
+#
+# -4 or -3 turns off 802.3 or Ethernet II transport.
+MOPD_OPTIONS="-a"

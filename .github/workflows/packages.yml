@@ -1,0 +1,106 @@
+# Builds the RetroStar packages and publishes them in the apt repository on
+# the gh-pages branch, served by GitHub Pages at https://vzekc.github.io/retrostar/.
+# latd and mopd are built for each Debian release and architecture, the ARM
+# ones under qemu; retrostar-client holds only scripts and is built once.
+
+name: packages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - packages/**
+      - scripts/**
+      - keys/**
+      - .github/workflows/packages.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# One publication at a time, so two runs never push the pages branch at once.
+concurrency:
+  group: apt-repository
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [latd, mopd]
+        suite: [bookworm, trixie]
+        arch: [amd64, arm64, armhf]
+        include:
+          - package: retrostar-client
+            suite: bookworm
+            arch: amd64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The version counts the commits that touched a package.
+          fetch-depth: 0
+
+      - uses: docker/setup-qemu-action@v3
+        if: matrix.arch != 'amd64'
+
+      - name: Build
+        env:
+          PLATFORM: ${{ matrix.arch == 'armhf' && 'linux/arm/v7' || format('linux/{0}', matrix.arch) }}
+        run: |
+          if [ "${{ matrix.package }}" = retrostar-client ]; then
+              version=$(scripts/package-version retrostar-client)
+          else
+              version=$(scripts/package-version ${{ matrix.package }} ${{ matrix.suite }})
+          fi
+          docker run --rm --platform "$PLATFORM" -v "$PWD:/src" -w /src debian:${{ matrix.suite }} bash -c "
+              apt-get update -qq &&
+              DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends build-essential debhelper >/dev/null &&
+              scripts/build-deb ${{ matrix.package }} $version out &&
+              chown -R $(id -u):$(id -g) out"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb-${{ matrix.package }}-${{ matrix.suite }}-${{ matrix.arch }}
+          path: out/*.deb
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: deb-*
+          merge-multiple: true
+          path: incoming
+
+      - name: Install apt-ftparchive
+        run: sudo apt-get install -y -qq apt-utils
+
+      - name: Publish
+        env:
+          APT_SIGNING_KEY: ${{ secrets.APT_SIGNING_KEY }}
+        run: |
+          printf '%s\n' "$APT_SIGNING_KEY" | gpg --batch --import
+          scripts/publish-apt site incoming
+
+      - name: Push the repository
+        working-directory: site
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+              echo 'Nothing new to publish.'
+          else
+              git commit -q -m "Publish packages from ${GITHUB_SHA::7}"
+              git push -q origin HEAD:gh-pages
+          fi

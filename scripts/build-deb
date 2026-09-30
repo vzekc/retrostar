@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# build-deb PACKAGE VERSION OUTDIR
+#
+# Builds PACKAGE as VERSION into OUTDIR, in a copy of its source so the
+# checkout stays clean. Runs inside a Debian container of the release and
+# architecture being built for, with build-essential and debhelper installed.
+# retrostar-client holds nothing compiled and is assembled with dpkg-deb.
+
+set -euo pipefail
+
+package=$1
+version=$2
+out=$(realpath -m "$3")
+src=$(cd "$(dirname "$0")/.." && pwd)/packages/$package
+
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+cp -a "$src" "$work/$package"
+mkdir -p "$out"
+
+if [ "$package" = retrostar-client ]; then
+    sed -i "s/^Version:.*/Version: $version/" "$work/$package/DEBIAN/control"
+    dpkg-deb -Zxz --root-owner-group --build "$work/$package" "$out/${package}_${version}_all.deb"
+    exit 0
+fi
+
+cat > "$work/$package/debian/changelog" <<EOD
+$package ($version) unstable; urgency=medium
+
+  * Built from https://github.com/vzekc/retrostar.
+
+ -- Hans Hübner <hans.huebner@gmail.com>  $(date -R)
+EOD
+
+(cd "$work/$package" && dpkg-buildpackage -b -us -uc)
+mv "$work"/*.deb "$out"/

@@ -1,0 +1,5 @@
+# Options for latd, passed through latcp -s. Without -i, latd uses every
+# Ethernet interface; a RetroStar client names its bridge:
+#
+#   LATD_OPTIONS="-i br0"
+LATD_OPTIONS=""

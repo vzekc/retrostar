@@ -1,0 +1,19 @@
+Source: mopd
+Section: net
+Priority: optional
+Maintainer: Hans Hübner <hans.huebner@gmail.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/dreamlayers/netbsd-mopd
+
+Package: mopd
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: MOP (Maintenance Operation Protocol) loader and tools
+ mopd answers MOP load requests from DEC machines and terminal servers booting
+ over Ethernet, serving the files in /tftpboot/mop. The tools: mopchk checks a
+ load file, mopcopy converts ELF and a.out files to MOP format, mopprobe and
+ moptrace watch MOP traffic on the LAN.
+ .
+ A file is found by the name the client asks for, or by the client's Ethernet
+ address in lowercase hex with .SYS appended: 08002b90649f.SYS.

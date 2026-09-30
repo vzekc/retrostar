@@ -11,7 +11,9 @@ RetroStar is a network monitoring and terminal access platform for VzEkC e.V. (G
 - **webserver/** - Main Node.js/Koa web application (see `webserver/CLAUDE.md` for detailed architecture)
 - **db/** - PostgreSQL migration scripts managed by `db/migrate.sh`
 - **ca/** - Certificate authority setup for OpenVPN
-- **client-package/** - Debian package source for RetroStar client
+- **packages/** - Debian package sources: `retrostar-client` (scripts, assembled with dpkg-deb), `latd` and `mopd`; base versions in `packages/versions`
+- **scripts/** - Package build and apt repository publishing, used by CI
+- **keys/** - Public half of the apt repository's signing key, and the repository's index page
 - **systemd/** - Service unit files (webserver, bridge, openvpn, protomon, latd)
 - **Shell scripts** - Infrastructure utilities (bridge creation, user management, package building)
 
@@ -33,6 +35,14 @@ db/migrate.sh up                   # Run pending migrations
 db/migrate.sh new <description>    # Create new migration file
 db/migrate.sh danger:reset         # Reset database (destructive)
 ```
+
+## Packages and Deployment
+
+CI (`.github/workflows/`) does both; nothing is deployed by hand.
+
+- **packages.yml** builds `latd` and `mopd` for bookworm and trixie on amd64, arm64 and armhf (ARM under qemu), and `retrostar-client` once, then publishes them into the signed apt repository on the `gh-pages` branch, served at https://vzekc.github.io/retrostar/. A package's version counts the commits that touched `packages/<name>`, so it changes exactly when the package does; a file already in the pool is never replaced. The signing key is the `APT_SIGNING_KEY` secret. The armhf builds are Debian's ARMv7 armhf and do not run on ARMv6 Pis (Pi 1, Zero).
+- **deploy.yml** runs `deploy.sh` on the server over ssh: fetch main over HTTPS, `npm ci`, migrations, restart `retrostar-webserver`. The key (`DEPLOY_SSH_KEY`) is restricted on the server to that script.
+- `install.sh` (`webserver/templates/install.sh.ejs`) adds the apt repository and installs `retrostar-client`. The package's `preinst` asks for the installation key only on a first installation without `/etc/retrostar/openvpn.conf`; `RETROSTAR_INSTALL_KEY` supplies it unattended.
 
 ## Code Style
 

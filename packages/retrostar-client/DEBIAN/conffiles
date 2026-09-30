@@ -1,0 +1,8 @@
+/etc/default/retrostar
+/etc/NetworkManager/conf.d/retrostar.conf
+/etc/retrostar/if-down.sh
+/etc/retrostar/if-up.sh
+/etc/sysctl.d/01-retrostar.conf
+/etc/systemd/network/10-br0.netdev
+/etc/systemd/network/20-eth0.network
+/etc/systemd/network/30-br0.network

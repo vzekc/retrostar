@@ -1,0 +1,14 @@
+[Unit]
+Description=MOP loader
+Documentation=man:mopd(8)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+EnvironmentFile=-/etc/default/mopd
+ExecStart=/usr/sbin/mopd -f $MOPD_OPTIONS
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

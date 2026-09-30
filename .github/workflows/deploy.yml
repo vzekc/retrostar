@@ -1,0 +1,34 @@
+# Deploys the web application to retrostar.classic-computing.de. The key may
+# run one thing on the server, deploy.sh (a forced command in authorized_keys),
+# which updates the checkout, runs the migrations and restarts the service.
+
+name: deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - webserver/**
+      - db/**
+      - deploy.sh
+      - .github/workflows/deploy.yml
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh hans@retrostar.classic-computing.de deploy

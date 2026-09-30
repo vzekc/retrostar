@@ -1,0 +1,71 @@
+#!/bin/bash
+#
+# publish-apt SITE INCOMING
+#
+# Adds the packages in INCOMING to the apt repository in SITE, a checkout of
+# the gh-pages branch, and writes its indices and signatures anew. A file
+# already in the pool stays as it is, so a version is published once and a
+# rebuild of an unchanged package changes nothing. Signs with the secret key
+# in the default GnuPG keyring.
+#
+# The layout, one pool per Debian release:
+#
+#   pool/<suite>/<package>_<version>_<arch>.deb
+#   dists/<suite>/{Release,InRelease,Release.gpg}
+#   dists/<suite>/main/binary-<arch>/Packages{,.gz}
+#   retrostar-archive-keyring.{gpg,asc}
+
+set -euo pipefail
+
+site=$(realpath "$1")
+incoming=$(realpath "$2")
+repo=$(cd "$(dirname "$0")/.." && pwd)
+
+suites="bookworm trixie"
+architectures="amd64 arm64 armhf"
+
+for deb in "$incoming"/*.deb; do
+    name=$(basename "$deb")
+    case $name in
+        *+deb12_*) targets=bookworm ;;
+        *+deb13_*) targets=trixie ;;
+        *_all.deb) targets=$suites ;;
+        *) echo "publish-apt: $name names no Debian release, left out" >&2; continue ;;
+    esac
+    for suite in $targets; do
+        dest=$site/pool/$suite/$name
+        if [ ! -e "$dest" ]; then
+            mkdir -p "$(dirname "$dest")"
+            cp "$deb" "$dest"
+            echo "added pool/$suite/$name"
+        fi
+    done
+done
+
+cd "$site"
+for suite in $suites; do
+    dists=dists/$suite
+    for arch in $architectures; do
+        mkdir -p "$dists/main/binary-$arch"
+        apt-ftparchive --arch "$arch" packages "pool/$suite" > "$dists/main/binary-$arch/Packages"
+        gzip -9nkf "$dists/main/binary-$arch/Packages"
+    done
+    rm -f "$dists/Release" "$dists/InRelease" "$dists/Release.gpg"
+    apt-ftparchive \
+        -o APT::FTPArchive::Release::Origin=RetroStar \
+        -o APT::FTPArchive::Release::Label=RetroStar \
+        -o APT::FTPArchive::Release::Suite="$suite" \
+        -o APT::FTPArchive::Release::Codename="$suite" \
+        -o APT::FTPArchive::Release::Architectures="$architectures" \
+        -o APT::FTPArchive::Release::Components=main \
+        -o APT::FTPArchive::Release::Description="RetroStar packages for Debian $suite" \
+        release "$dists" > Release.tmp
+    mv Release.tmp "$dists/Release"
+    gpg --batch --yes --clearsign -o "$dists/InRelease" "$dists/Release"
+    gpg --batch --yes --armor --detach-sign -o "$dists/Release.gpg" "$dists/Release"
+done
+
+cp "$repo/keys/retrostar-archive-keyring.asc" .
+gpg --batch --yes --dearmor -o retrostar-archive-keyring.gpg retrostar-archive-keyring.asc
+cp "$repo/keys/index.html" .
+touch .nojekyll

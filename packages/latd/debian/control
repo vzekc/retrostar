@@ -1,0 +1,19 @@
+Source: latd
+Section: net
+Priority: optional
+Maintainer: Hans Hübner <hans.huebner@gmail.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/vzekc/retrostar
+
+Package: latd
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: LAT (Local Area Transport) server
+ latd offers LAT services to terminal servers such as DEC's DECservers and
+ connects to LAT services elsewhere on the LAN (llogin). latcp configures the
+ running daemon; /etc/latd.conf is run as a shell script of latcp commands
+ when latd starts.
+ .
+ This build offers no default login service: a service exists only once
+ /etc/latd.conf adds one.

@@ -1,0 +1,20 @@
+#!/usr/bin/make -f
+
+include /usr/share/dpkg/architecture.mk
+
+%:
+	dh $@
+
+# configure is shipped generated; regenerating it with today's autoconf
+# breaks it.
+override_dh_autoreconf:
+
+# configure predates options debhelper passes by default, such as
+# --runstatedir, and stops at them.
+override_dh_auto_configure:
+	./configure --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --sysconfdir=/etc \
+		--mandir=/usr/share/man --disable-defservice
+
+# Debug symbol packages stay out of the repository.
+override_dh_strip:
+	dh_strip --no-automatic-dbgsym

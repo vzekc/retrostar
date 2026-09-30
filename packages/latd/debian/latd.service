@@ -1,0 +1,18 @@
+[Unit]
+Description=LAT daemon
+Documentation=man:latd(8) man:latcp(8) man:latd.conf(5)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+# latcp -s starts latd, which detaches, runs /etc/latd.conf against it, and
+# exits.
+Type=forking
+EnvironmentFile=-/etc/default/latd
+ExecStart=/usr/sbin/latcp -s $LATD_OPTIONS
+ExecStop=/usr/sbin/latcp -h
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

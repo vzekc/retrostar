@@ -1,0 +1,9 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: latd
+Source: https://sourceforge.net/projects/linux-decnet/
+
+Files: *
+Copyright: 2000-2009 Christine Caulfield <christine.caulfield@googlemail.com>
+License: GPL-2+
+ On Debian systems, the complete text of the GNU General Public License
+ version 2 can be found in /usr/share/common-licenses/GPL-2.

@@ -1,0 +1,9 @@
+Package: retrostar-client
+Version: 1.1
+Section: net
+Priority: optional
+Architecture: all
+Maintainer: Hans Hübner <hans.huebner@gmail.com>
+Depends: openvpn, ebtables, tcpdump, lsof, curl
+Description: This is the client package needed to connect to the RetroStar network
+
