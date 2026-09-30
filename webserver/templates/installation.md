@@ -29,7 +29,7 @@ herunterladen:
 
 Bei der manuellen Konfiguration können wir Dir nur begrenzt helfen.
 
-Schau Dir den [Quellcode](https://github.com/hanshuebner/retrostar/tree/main/client-package) an,
+Schau Dir den [Quellcode](https://github.com/vzekc/retrostar/tree/main/packages/retrostar-client) an,
 wenn Du wissen willst, wie RetroStar funktioniert.
 
 Bitte beachte, dass wir keine Haftung für Schäden übernehmen, die durch die Nutzung

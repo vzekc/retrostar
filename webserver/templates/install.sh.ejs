@@ -2,9 +2,26 @@
 
 set -e
 
-cd /tmp
+. /etc/os-release
+case "$VERSION_CODENAME" in
+    bookworm|trixie) ;;
+    *)
+        echo "RetroStar läuft auf Debian bookworm und trixie, dieses System ist ${VERSION_CODENAME:-unbekannt}." >&2
+        exit 1
+        ;;
+esac
+
+# The RetroStar apt repository, so the client is updated with the rest of the
+# system.
+sudo install -d -m 0755 /etc/apt/keyrings
+curl -fsSL https://vzekc.github.io/retrostar/retrostar-archive-keyring.gpg | sudo tee /etc/apt/keyrings/retrostar.gpg >/dev/null
+sudo tee /etc/apt/sources.list.d/retrostar.sources >/dev/null <<EOD
+Types: deb
+URIs: https://vzekc.github.io/retrostar/
+Suites: $VERSION_CODENAME
+Components: main
+Signed-By: /etc/apt/keyrings/retrostar.gpg
+EOD
+
 sudo apt update
-tmp_deb=./retrostar-client.$$.deb
-curl -Lo$tmp_deb https://retrostar.classic-computing.de/retrostar-client.deb
-sudo apt install -y --reinstall $tmp_deb
-rm $tmp_deb
+sudo apt install -y retrostar-client
