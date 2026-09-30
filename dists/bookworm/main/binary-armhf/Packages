@@ -22,6 +22,30 @@ Description: LAT (Local Area Transport) server
  This build offers no default login service: a service exists only once
  /etc/latd.conf adds one.
 
+Package: latd
+Architecture: armhf
+Version: 1:1.31-2+deb12
+Priority: optional
+Section: net
+Maintainer: Hans Hübner <hans.huebner@gmail.com>
+Installed-Size: 210
+Depends: libc6 (>= 2.34), libstdc++6 (>= 11)
+Filename: pool/bookworm/latd_1.31-2+deb12_armhf.deb
+Size: 97584
+MD5sum: ea5ff8b894cc7b64725d4f01b9e231aa
+SHA1: 856a3ecec620016037db628a9fb6e3aec884e240
+SHA256: 7c6f620769b700e95a6ad9f778d962df553474ea9be1521a5c4b62ab4a845950
+SHA512: 5fd64f927f08986a9fdbdc12901b608cef0b26a37ae03bfc99878e331fc9be06e68242338bd35e3bc5311d00919ed9c129c6bbe94374e64bd4bb1676d108b0e6
+Homepage: https://github.com/vzekc/retrostar
+Description: LAT (Local Area Transport) server
+ latd offers LAT services to terminal servers such as DEC's DECservers and
+ connects to LAT services elsewhere on the LAN (llogin). latcp configures the
+ running daemon; /etc/latd.conf is run as a shell script of latcp commands
+ when latd starts.
+ .
+ This build offers no default login service: a service exists only once
+ /etc/latd.conf adds one.
+
 Package: mopd
 Architecture: armhf
 Version: 2.5.3-1+deb12
@@ -46,6 +70,30 @@ Description: MOP (Maintenance Operation Protocol) loader and tools
  A file is found by the name the client asks for, or by the client's Ethernet
  address in lowercase hex with .SYS appended: 08002b90649f.SYS.
 
+Package: mopd
+Architecture: armhf
+Version: 2.5.3-2+deb12
+Priority: optional
+Section: net
+Maintainer: Hans Hübner <hans.huebner@gmail.com>
+Installed-Size: 159
+Depends: libc6 (>= 2.34)
+Filename: pool/bookworm/mopd_2.5.3-2+deb12_armhf.deb
+Size: 44812
+MD5sum: 77f5813ccfbe37f58a6e1509353430bb
+SHA1: ae42ed7f35955dc33b26ef297c3074fafd3763ad
+SHA256: c22477b0f5f01d63d90ea36b9e34f7dd026d2047ebad3a0b3384f0740a654582
+SHA512: d5c2ede1c71815c2cd759b08cbeabc2380683609042619bda0b1a929690830aae73228fd8715d8031f5e6ad2d25726560456a5d8ed27d257e142ddd9f437b46d
+Homepage: https://github.com/dreamlayers/netbsd-mopd
+Description: MOP (Maintenance Operation Protocol) loader and tools
+ mopd answers MOP load requests from DEC machines and terminal servers booting
+ over Ethernet, serving the files in /tftpboot/mop. The tools: mopchk checks a
+ load file, mopcopy converts ELF and a.out files to MOP format, mopprobe and
+ moptrace watch MOP traffic on the LAN.
+ .
+ A file is found by the name the client asks for, or by the client's Ethernet
+ address in lowercase hex with .SYS appended: 08002b90649f.SYS.
+
 Package: retrostar-client
 Architecture: all
 Version: 1.1-1
@@ -59,5 +107,20 @@ MD5sum: 21852433a730087a974679b5da540dd8
 SHA1: 0818d3dc8e3b5b456d9751a6f6616ef7d2f6cec9
 SHA256: 6475ded2a3f0d3518e8ad18a272faae8ef381a06fe68acda0d4053e9ec75cfb7
 SHA512: e1827f7db1d327c913df417ac24cb1ef4ff42c8059faf7b028101fa79b695e405b29e9885eb0f28f4aa6a850ef58446b854e1f50e0eefc90247b70d0e0b38f56
+Description: This is the client package needed to connect to the RetroStar network
+
+Package: retrostar-client
+Architecture: all
+Version: 1.1-2
+Priority: optional
+Section: net
+Maintainer: Hans Hübner <hans.huebner@gmail.com>
+Depends: openvpn, ebtables, tcpdump, lsof, curl
+Filename: pool/bookworm/retrostar-client_1.1-2_all.deb
+Size: 4628
+MD5sum: 5eb2f8f7d00f006b95a4f58ad2a370ea
+SHA1: b12a71857ec1bf5619fa9564b3c101defb982416
+SHA256: 93d6348941d4413b888113f1b24a34b4e1505868edcc9a047411c4933d3d42e2
+SHA512: 270f1351300f5a1d3611d7726875ae26d8a75b9b29807d95a03765e5e0047759e1941d71941fe7ebb00de74b4df16896fa84e467e066125d3c4c5aa5e5f52a39
 Description: This is the client package needed to connect to the RetroStar network
 
