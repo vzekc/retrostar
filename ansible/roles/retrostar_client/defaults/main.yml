@@ -1,0 +1,8 @@
+# The RetroStar apt repository, and the web server that hands out a client's
+# OpenVPN configuration for its installation key.
+retrostar_apt_url: https://vzekc.github.io/retrostar/
+retrostar_config_url: https://retrostar.classic-computing.de/client-config/
+# The member's installation key, from
+# https://retrostar.classic-computing.de/installation, in a file on the
+# control machine.
+retrostar_install_key_file: '~/.config/retrostar/{{ inventory_hostname }}/install-key'

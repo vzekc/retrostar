@@ -1,0 +1,12 @@
+# mopd on the bridge, so machines on the router's wire and on the RetroStar
+# network behind it load from it alike.
+mop_interface: br0
+mop_dir: /tftpboot/mop
+# The files served, from files/mop next to the playbook, each also offered
+# under the names in `names` — such as <ethernet address>.SYS, which a client
+# asks for when it names no file:
+#
+#   mop_files:
+#     - file: PR0801ENG.SYS
+#       names: [08002b069b9e.SYS]
+mop_files: []

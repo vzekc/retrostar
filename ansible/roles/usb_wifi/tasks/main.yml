@@ -1,0 +1,10 @@
+- name: Keep the other drivers off the wifi dongle
+  # The card's first boot writes the same file before the network comes up.
+  copy:
+    dest: /etc/modprobe.d/retrostar-wifi.conf
+    content: |
+      {% for driver in usb_wifi_blacklist %}
+      blacklist {{ driver }}
+      {% endfor %}
+    mode: '0644'
+  when: usb_wifi_blacklist | length > 0

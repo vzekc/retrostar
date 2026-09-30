@@ -1,0 +1,14 @@
+# What every RetroStar router shares. Each router's own settings are in
+# host_vars/<name>.
+
+# retrostar-client turns IPv6 off while it installs, and refuses to install
+# over an IPv6 connection that would drop with it.
+ansible_ssh_extra_args: -o AddressFamily=inet
+
+# The Raspberry Pi OS image bring-up writes: arm64 for a Pi 3 or later, armhf
+# for a Pi 2.
+router_image: arm64
+
+# Roles from requirements.yml the router runs besides the RetroStar ones,
+# such as its operator's account.
+router_extra_roles: []

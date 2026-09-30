@@ -1,0 +1,28 @@
+# A RetroStar router: a Raspberry Pi whose Ethernet port is bridged into the
+# RetroStar network, on the internet over wifi. On the bridge it can load
+# machines over MOP and offer LAT services; host_vars/<name> says what each
+# router serves.
+#
+#   ansible-galaxy role install -r requirements.yml -p galaxy-roles --force
+#   ansible-playbook router.yml -l <name>
+
+- name: Set up RetroStar routers
+  hosts: routers
+  become: true
+  roles:
+    - role: usb_wifi
+      tags: wifi
+    - role: retrostar_client
+      tags: client
+    - role: mop
+      tags: mop
+      when: mop_files | length > 0
+    - role: lat
+      tags: lat
+      when: lat_services | length > 0
+  tasks:
+    - name: Run the router's own roles
+      include_role:
+        name: '{{ item }}'
+      loop: '{{ router_extra_roles }}'
+      tags: extra

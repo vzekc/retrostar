@@ -13,6 +13,7 @@ RetroStar is a network monitoring and terminal access platform for VzEkC e.V. (G
 - **ca/** - Certificate authority setup for OpenVPN
 - **packages/** - Debian package sources: `retrostar-client` (scripts, assembled with dpkg-deb), `latd` and `mopd`; base versions in `packages/versions`
 - **scripts/** - Package build and apt repository publishing, used by CI
+- **ansible/** - Setup of RetroStar routers: generic roles, `router.yml`, `bring-up` for a new card, and each router's `host_vars` (see `ansible/README.md`)
 - **keys/** - Public half of the apt repository's signing key, and the repository's index page
 - **systemd/** - Service unit files (webserver, bridge, openvpn, protomon, latd)
 - **Shell scripts** - Infrastructure utilities (bridge creation, user management, package building)

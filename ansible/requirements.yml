@@ -1,0 +1,8 @@
+# Roles from other repositories that a router's host_vars name in
+# router_extra_roles, installed into galaxy-roles/:
+#
+#   ansible-galaxy role install -r requirements.yml -p galaxy-roles --force
+roles:
+  - name: operator
+    src: git+https://code.netzhansa.com/hanshuebner/ansible-role-operator.git
+    version: main

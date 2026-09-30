@@ -1,0 +1,25 @@
+- name: Install latd and what its services run
+  apt:
+    name: "{{ ['latd'] + lat_packages }}"
+    state: present
+
+- name: Serve LAT on the bridge
+  copy:
+    dest: /etc/default/latd
+    content: |
+      LATD_OPTIONS="-i {{ lat_interface }}"
+    mode: '0644'
+  notify: restart latd
+
+- name: Configure the services
+  template:
+    src: latd.conf.j2
+    dest: /etc/latd.conf
+    mode: '0644'
+  notify: restart latd
+
+- name: Ensure latd is running
+  systemd_service:
+    name: latd
+    state: started
+    enabled: true

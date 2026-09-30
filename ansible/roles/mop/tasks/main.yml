@@ -1,0 +1,32 @@
+- name: Install mopd
+  apt:
+    name: mopd
+    state: present
+
+- name: Serve MOP on the bridge
+  copy:
+    dest: /etc/default/mopd
+    content: |
+      MOPD_OPTIONS="{{ mop_interface }}"
+    mode: '0644'
+  notify: restart mopd
+
+- name: Install the files served
+  copy:
+    src: 'mop/{{ item.file }}'
+    dest: '{{ mop_dir }}/{{ item.file }}'
+    mode: '0644'
+  loop: '{{ mop_files }}'
+
+- name: Offer them under their other names
+  file:
+    src: '{{ item.0.file }}'
+    dest: '{{ mop_dir }}/{{ item.1 }}'
+    state: link
+  loop: "{{ mop_files | subelements('names', skip_missing=true) }}"
+
+- name: Ensure mopd is running
+  systemd_service:
+    name: mopd
+    state: started
+    enabled: true

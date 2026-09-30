@@ -1,0 +1,3 @@
+# Drivers kept off a USB wifi dongle, where the kernel has more than one that
+# claims its chip and the one that works is not the one it picks.
+usb_wifi_blacklist: []

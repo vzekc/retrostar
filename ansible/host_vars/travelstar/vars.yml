@@ -1,0 +1,30 @@
+# travelstar, Hans Hübner's router: a Raspberry Pi 2 on the wire of the
+# Classic Computing exhibition's network. It boots the DECserver 200/MC there
+# and offers its ports the FotoFix booth's login and kermit, which run on
+# fotofix's serial agent. It reaches the internet over an Edimax EW-7811Un.
+
+router_image: armhf
+router_extra_roles: [operator]
+operator_groups: [users, sudo, adm, dialout, netdev]
+
+# The dongle's RTL8188CUS runs under rtl8192cu; the two other drivers that
+# claim it are kept off. bring-up loads the driver on the card's first boot.
+usb_wifi_blacklist: [rtl8xxxu, 8192cu]
+usb_wifi_driver: rtl8192cu
+
+# The DECserver 200/MC, 08:00:2b:06:9b:9e.
+mop_files:
+  - file: PR0801ENG.SYS
+    names: [08002b069b9e.SYS]
+
+# fotofix's address on the exhibition network: the home network's here, the
+# hall's at the show, given there with -e fotofix_address=…
+fotofix_address: 192.168.2.208
+lat_packages: [socat]
+lat_services:
+  - name: FOTOFIX
+    ident: FotoFix login
+    command: /usr/bin/socat STDIO,raw,echo=0 TCP:{{ fotofix_address }}:2300
+  - name: FOTOKERMIT
+    ident: FotoFix kermit
+    command: /usr/bin/socat STDIO,raw,echo=0 TCP:{{ fotofix_address }}:2301

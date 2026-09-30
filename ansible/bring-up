@@ -1,0 +1,234 @@
+#!/usr/bin/env bash
+#
+# A RetroStar router from a blank SD card, from the Mac it is written on.
+#
+#   bring-up NAME                 every step below, in order
+#   bring-up NAME image           the Raspberry Pi OS image, fetched and checked
+#   bring-up NAME card DISK       write it to the card, with its first-boot files
+#                                 (a disk, disk6, or a volume)
+#   bring-up NAME wait            until the router answers to its name
+#   bring-up NAME deploy          the playbook
+#
+# NAME is the router's name in inventory/hosts.ini. What it needs and the
+# repository does not hold is in ~/.config/retrostar/NAME:
+#
+#   authorized_keys   the operator's public keys
+#   wifi              the wifi networks it may join, one "ssid<TAB>password" a line
+#   install-key       the RetroStar installation key
+#   password-hash     the account's password hash, optional; without it the
+#                     account logs in by key only
+#
+# The router comes up on its wifi alone. Its Ethernet port becomes the
+# RetroStar bridge, and the RetroStar client refuses to install while that
+# port carries the default route: leave it unplugged until the playbook is
+# done.
+
+set -euo pipefail
+
+HERE=$(cd "$(dirname "$0")" && pwd)
+NAME=${1:?"usage: $0 NAME [image|card DISK|wait|deploy]"}
+STEP=${2:-all}
+STAGE=$HOME/.config/retrostar/$NAME
+CACHE=$HOME/.cache/retrostar
+
+say() { printf '\n== %s\n' "$*"; }
+die() { printf 'bring-up: %s\n' "$*" >&2; exit 1; }
+
+# The router's settings, as the playbook sees them.
+inventory=$(cd "$HERE" && ansible-inventory --host "$NAME" 2>/dev/null) || die "$NAME is not in inventory/hosts.ini"
+setting() { python3 -c 'import json,sys; v=json.load(sys.stdin).get(sys.argv[1], sys.argv[2]); print(" ".join(v) if isinstance(v, list) else v)' "$1" "${2:-}" <<< "$inventory"; }
+USER_NAME=$(setting ansible_user)
+ARCH=$(setting router_image arm64)
+WIFI_BLACKLIST=$(setting usb_wifi_blacklist)
+WIFI_DRIVER=$(setting usb_wifi_driver)
+[ -n "$USER_NAME" ] || die "$NAME has no ansible_user in inventory/hosts.ini"
+
+case $ARCH in
+    armhf)
+        IMAGE_DIR=raspios_lite_armhf-2026-09-15
+        IMAGE=2026-09-15-raspios-trixie-armhf-lite.img.xz
+        IMAGE_SHA256=c766b3fb279b95c12cb4dd22d06f8eab31972c372675d05bd0ca95b060523a7f
+        ;;
+    arm64)
+        IMAGE_DIR=raspios_lite_arm64-2026-09-15
+        IMAGE=2026-09-15-raspios-trixie-arm64-lite.img.xz
+        IMAGE_SHA256=cdf4f3bfac35ae947b46e4e767f935453810549779ac3290e05a6754aee627e5
+        ;;
+    *) die "router_image is $ARCH; it is armhf or arm64" ;;
+esac
+IMAGE_URL=https://downloads.raspberrypi.com/raspios_lite_$ARCH/images/$IMAGE_DIR/$IMAGE
+
+# What a host calls itself, or nothing when it does not answer.
+hostname_of() {
+    ssh -o BatchMode=yes -o ConnectTimeout=5 -o StrictHostKeyChecking=no \
+        -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o AddressFamily=inet \
+        "$USER_NAME@$1" hostname 2>/dev/null || true
+}
+address_of() { python3 -c 'import socket,sys; print(socket.gethostbyname(sys.argv[1]))' "$1" 2>/dev/null || true; }
+
+# The router's IPv4 address, once it answers at its mDNS name. The playbook
+# connects by address: the RetroStar client refuses an installation over IPv6.
+TARGET=
+find_router() {
+    local address
+    address=$(address_of "$NAME.local")
+    [ -n "$address" ] && [ "$(hostname_of "$address")" = "$NAME" ] || return 1
+    TARGET=$address
+}
+need_router() {
+    find_router || die "$NAME.local does not answer; run '$0 $NAME wait' first"
+}
+
+# ── image ────────────────────────────────────────────────────────────────────
+
+image() {
+    install -d "$CACHE"
+    if [ ! -f "$CACHE/$IMAGE" ]; then
+        say "fetching $IMAGE"
+        curl -sS -L -o "$CACHE/$IMAGE.part" "$IMAGE_URL"
+        mv "$CACHE/$IMAGE.part" "$CACHE/$IMAGE"
+    fi
+    say "checking $IMAGE"
+    (cd "$CACHE" && echo "$IMAGE_SHA256  $IMAGE" | shasum -a 256 -c -) || die "$IMAGE does not match its checksum; delete it and fetch again"
+}
+
+# ── card ─────────────────────────────────────────────────────────────────────
+
+# The first-boot configuration: the account and the wifi, a wifi dongle on its
+# driver before the network comes up, and no automatic connection on the
+# Ethernet port, so it never takes the default route.
+first_boot_files() {
+    local dir=$1 hash keys
+    hash=$(cat "$STAGE/password-hash" 2>/dev/null || true)
+    keys=$(sed 's/^/    - /' "$STAGE/authorized_keys")
+    {
+        cat <<EOF
+#cloud-config
+manage_resolv_conf: false
+hostname: $NAME
+manage_etc_hosts: true
+packages:
+- avahi-daemon
+apt:
+  preserve_sources_list: true
+timezone: Europe/Berlin
+keyboard:
+  model: pc105
+  layout: "us"
+EOF
+        if [ -n "$WIFI_DRIVER" ]; then
+            cat <<EOF
+bootcmd:
+- [sh, -c, "printf 'blacklist %s\\\\n' $WIFI_BLACKLIST > /etc/modprobe.d/retrostar-wifi.conf; for d in $WIFI_BLACKLIST; do modprobe -r \$d 2>/dev/null; done; modprobe $WIFI_DRIVER"]
+EOF
+        fi
+        cat <<EOF
+write_files:
+- path: /etc/NetworkManager/conf.d/10-no-auto-default.conf
+  content: |
+    [main]
+    no-auto-default=*
+users:
+- name: $USER_NAME
+  groups: users,adm,dialout,audio,netdev,video,plugdev,cdrom,games,input,gpio,spi,i2c,render,sudo
+  shell: /bin/bash
+EOF
+        if [ -n "$hash" ]; then
+            printf "  lock_passwd: false\n  passwd: '%s'\n" "$hash"
+        else
+            echo "  lock_passwd: true"
+        fi
+        cat <<EOF
+  ssh_authorized_keys:
+$keys
+  sudo: ALL=(ALL) NOPASSWD:ALL
+enable_ssh: true
+ssh_pwauth: false
+EOF
+    } > "$dir/user-data"
+    {
+        cat <<EOF
+network:
+  version: 2
+  wifis:
+    wlan0:
+      dhcp4: true
+      regulatory-domain: "DE"
+      access-points:
+EOF
+        while IFS=$'\t' read -r ssid psk; do
+            [ -n "$ssid" ] || continue
+            printf '        "%s":\n          password: "%s"\n' "$ssid" "$psk"
+        done < "$STAGE/wifi"
+    } > "$dir/network-config"
+    echo "instance-id: $NAME-$(date +%Y%m%d%H%M%S)" > "$dir/meta-data"
+}
+
+card() {
+    local volume=${1:?"name the card: $0 $NAME card disk6"} disk info
+    [ -f "$CACHE/$IMAGE" ] || die "no image; run '$0 $NAME image' first"
+    [ -s "$STAGE/wifi" ] && [ -s "$STAGE/authorized_keys" ] || die "no wifi or authorized_keys in $STAGE"
+    # Named by disk (disk6) or, mounted, by volume (/Volumes/bootfs).
+    info=$(diskutil info "$volume") || die "$volume is neither a disk nor a volume"
+    disk=$(echo "$info" | awk -F': *' '/Part of Whole/{print $2}')
+    [ -n "$disk" ] || die "cannot tell which disk $volume is on"
+    echo "$info" | grep -q 'Removable Media: *Removable' || die "$volume is on $disk, which is not removable media"
+    say "writing $IMAGE to $disk"
+    diskutil info "$disk" | grep -E 'Device Node|Disk Size|Protocol'
+
+    local tmp; tmp=$(mktemp -d)
+    first_boot_files "$tmp"
+
+    diskutil unmountDisk "/dev/$disk"
+    xz -dc "$CACHE/$IMAGE" | sudo dd of="/dev/r$disk" bs=4m status=progress
+    sleep 3
+    diskutil unmountDisk "/dev/$disk" >/dev/null 2>&1 || true
+    say "writing the first-boot files"
+    sudo env MTOOLS_SKIP_CHECK=1 mcopy -o -i "/dev/${disk}s1" "$tmp/user-data" "$tmp/network-config" "$tmp/meta-data" ::/
+    sudo env MTOOLS_SKIP_CHECK=1 mdir -i "/dev/${disk}s1" ::/user-data ::/network-config ::/meta-data
+    rm -rf "$tmp"
+    diskutil eject "/dev/$disk"
+    say "the card is ready: put it in the Pi, Ethernet unplugged, and power it"
+}
+
+# ── wait ─────────────────────────────────────────────────────────────────────
+
+wait_for_router() {
+    say "waiting for $NAME to answer at $NAME.local"
+    while ! find_router; do
+        printf '.'
+        sleep 10
+    done
+    echo
+    say "$NAME answers at $TARGET"
+    # The name now belongs to a new host key.
+    local host
+    for host in "$NAME.local" "$TARGET"; do
+        ssh-keygen -R "$host" >/dev/null 2>&1 || true
+        ssh-keyscan -H "$host" 2>/dev/null >> "$HOME/.ssh/known_hosts"
+    done
+    say "waiting for its first boot to finish"
+    # 2 is done with warnings, which the image's own modules produce.
+    ssh -o BatchMode=yes "$USER_NAME@$TARGET" cloud-init status --wait --long ||
+        [ $? -eq 2 ] || echo "(cloud-init reports trouble; the playbook installs what it needs regardless)"
+}
+
+# ── deploy ───────────────────────────────────────────────────────────────────
+
+deploy() {
+    need_router
+    [ -s "$STAGE/install-key" ] || die "no RetroStar installation key in $STAGE/install-key"
+    say "the playbook against $TARGET"
+    cd "$HERE"
+    ansible-galaxy role install -r requirements.yml -p galaxy-roles --force
+    ansible-playbook router.yml -l "$NAME" -e "ansible_host=$TARGET"
+}
+
+case $STEP in
+    all) image; card "${3:-}"; wait_for_router; deploy ;;
+    image) image ;;
+    card) card "${3:-}" ;;
+    wait) wait_for_router ;;
+    deploy) deploy ;;
+    *) die "unknown step '$STEP'; see the comment at the top of $0" ;;
+esac

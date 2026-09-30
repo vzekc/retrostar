@@ -1,0 +1,4 @@
+- name: restart latd
+  systemd_service:
+    name: latd
+    state: restarted

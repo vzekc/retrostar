@@ -1,0 +1,4 @@
+- name: restart mopd
+  systemd_service:
+    name: mopd
+    state: restarted

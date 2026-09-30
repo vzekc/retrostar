@@ -1,0 +1,65 @@
+# The RetroStar client from the RetroStar apt repository. Its configuration is
+# fetched here with the installation key, so the package finds it in place and
+# asks nothing. On the first installation the package bridges eth0 into br0
+# and restarts NetworkManager; the machine is rebooted onto that bridge.
+
+- name: Refuse to install with eth0 routed
+  # The package refuses to install while eth0 carries the default route: the
+  # port becomes the bridge's, and the router reaches the internet over wifi.
+  command: ip route show default dev eth0
+  register: retrostar_eth0_route
+  changed_when: false
+  failed_when: retrostar_eth0_route.stdout != ''
+
+- name: Add the RetroStar repository's signing key
+  get_url:
+    url: '{{ retrostar_apt_url }}retrostar-archive-keyring.gpg'
+    dest: /etc/apt/keyrings/retrostar.gpg
+    mode: '0644'
+
+- name: Add the RetroStar repository
+  copy:
+    dest: /etc/apt/sources.list.d/retrostar.sources
+    content: |
+      Types: deb
+      URIs: {{ retrostar_apt_url }}
+      Suites: {{ ansible_facts.distribution_release }}
+      Components: main
+      Signed-By: /etc/apt/keyrings/retrostar.gpg
+    mode: '0644'
+
+- name: Create the client's configuration directory
+  file:
+    path: /etc/retrostar
+    state: directory
+    mode: '0755'
+
+- name: Fetch the client's configuration
+  # It carries the router's certificate and key. Fetched once.
+  get_url:
+    url: "{{ retrostar_config_url }}{{ lookup('file', retrostar_install_key_file) | trim }}"
+    dest: /etc/retrostar/openvpn.conf
+    mode: '0600'
+    force: false
+  no_log: true
+
+- name: Install the RetroStar client
+  # Detached, since the package restarts NetworkManager on its first
+  # installation and the connection may drop with it.
+  apt:
+    name: retrostar-client
+    update_cache: true
+  async: 900
+  poll: 10
+  register: retrostar_install
+
+- name: Reboot onto the bridge
+  reboot:
+    reboot_timeout: 600
+  when: retrostar_install.changed
+
+- name: Ensure the client is running
+  systemd_service:
+    name: retrostar
+    state: started
+    enabled: true
