@@ -9,7 +9,11 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-username=$1
+username=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+
+if [ "$username" != "$1" ]; then
+  echo "Note: username normalized to lowercase: $username" >&2
+fi
 
 SCRIPT_DIR=$(dirname "$0")
 cd "$SCRIPT_DIR"
