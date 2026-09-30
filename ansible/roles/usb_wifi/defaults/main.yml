@@ -1,3 +1,9 @@
 # Drivers kept off a USB wifi dongle, where the kernel has more than one that
 # claims its chip and the one that works is not the one it picks.
 usb_wifi_blacklist: []
+# The dongle's driver. With one named, a watchdog reloads it when the wifi has
+# been down for usb_wifi_watchdog_minutes: some dongles hang, scan nothing
+# and join nothing until their driver is loaded afresh.
+usb_wifi_driver: ''
+usb_wifi_interface: wlan0
+usb_wifi_watchdog_minutes: 2

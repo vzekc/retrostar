@@ -8,3 +8,47 @@
       {% endfor %}
     mode: '0644'
   when: usb_wifi_blacklist | length > 0
+
+- name: Install the wifi watchdog
+  when: usb_wifi_driver | length > 0
+  block:
+    - name: Install the watchdog script
+      template:
+        src: retrostar-wifi-watchdog.j2
+        dest: /usr/local/sbin/retrostar-wifi-watchdog
+        mode: '0755'
+
+    - name: Install the watchdog service
+      copy:
+        dest: /etc/systemd/system/retrostar-wifi-watchdog.service
+        content: |
+          [Unit]
+          Description=Reload the wifi dongle's driver when the wifi stays down
+          After=NetworkManager.service
+
+          [Service]
+          Type=oneshot
+          ExecStart=/usr/local/sbin/retrostar-wifi-watchdog
+        mode: '0644'
+
+    - name: Install the watchdog timer
+      copy:
+        dest: /etc/systemd/system/retrostar-wifi-watchdog.timer
+        content: |
+          [Unit]
+          Description=Check the wifi every minute
+
+          [Timer]
+          OnBootSec=2min
+          OnUnitActiveSec=1min
+
+          [Install]
+          WantedBy=timers.target
+        mode: '0644'
+
+    - name: Run the watchdog
+      systemd_service:
+        name: retrostar-wifi-watchdog.timer
+        state: started
+        enabled: true
+        daemon_reload: true

@@ -1,0 +1,28 @@
+#!/bin/sh
+{{ ansible_managed | comment }}
+# Run every minute by retrostar-wifi-watchdog.timer. When {{ usb_wifi_interface }} has not been
+# connected for {{ usb_wifi_watchdog_minutes }} checks in a row, the dongle's driver is loaded afresh
+# and the device connected again, also where a disconnect had turned its
+# autoconnect off.
+
+count_file=/run/retrostar-wifi-watchdog
+
+if nmcli -t -f DEVICE,STATE device | grep -qx '{{ usb_wifi_interface }}:connected'; then
+    rm -f "$count_file"
+    exit 0
+fi
+
+count=$(( $(cat "$count_file" 2>/dev/null || echo 0) + 1 ))
+if [ "$count" -lt {{ usb_wifi_watchdog_minutes }} ]; then
+    echo "$count" > "$count_file"
+    exit 0
+fi
+
+rm -f "$count_file"
+echo "{{ usb_wifi_interface }} down for $count checks: reloading {{ usb_wifi_driver }}"
+modprobe -r {{ usb_wifi_driver }}
+sleep 2
+modprobe {{ usb_wifi_driver }}
+sleep 10
+nmcli device set {{ usb_wifi_interface }} autoconnect yes
+nmcli device connect {{ usb_wifi_interface }}
