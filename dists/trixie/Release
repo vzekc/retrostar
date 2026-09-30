@@ -1,0 +1,36 @@
+Architectures: amd64 arm64 armhf
+Codename: trixie
+Components: main
+Date: Wed, 30 Sep 2026 17:56:56 +0000
+Description: RetroStar packages for Debian trixie
+Label: RetroStar
+Origin: RetroStar
+Suite: trixie
+MD5Sum:
+ a86b7614aa342ec835af07a8e26b26b7             2728 main/binary-amd64/Packages
+ 89f8eccedb4ca1e08abc1f0605380e90             1463 main/binary-amd64/Packages.gz
+ dd57274d490fb830350dab2f479a420b             2728 main/binary-arm64/Packages
+ fab3be4b993d654edcf17b50ac104dff             1467 main/binary-arm64/Packages.gz
+ c3dc5c52219412bbb723884d4daec4ac             2747 main/binary-armhf/Packages
+ e28ae67fab9310e96203859f09fff900             1471 main/binary-armhf/Packages.gz
+SHA1:
+ 9f77490ce605de7a00fe7940057807131457ba8b             2728 main/binary-amd64/Packages
+ 47fbeae1c9a3d89c3250f265043988b4512a04cf             1463 main/binary-amd64/Packages.gz
+ 2e9396e11e61bc32360cf7ad795b13e517b471f2             2728 main/binary-arm64/Packages
+ ba78f0f6aacef40f4931c2a2583727c8c9ad51a9             1467 main/binary-arm64/Packages.gz
+ b5e792780e42f905223fd7d067ab0bac3792819a             2747 main/binary-armhf/Packages
+ d8e29fa8ab56f952d79663d590e9b6922c3aeca8             1471 main/binary-armhf/Packages.gz
+SHA256:
+ 82ea9fa9c2e7e1657f69e74fba5141a6e2a7b4d11d828c95deb938eb089f27cb             2728 main/binary-amd64/Packages
+ 41ec0c44fb4f929639f0ba2ee835fedd1e4d00facf9a376c9d1d454371f4f515             1463 main/binary-amd64/Packages.gz
+ 580448c1e5426d7d20dacec767ee3d009039a3a916503198a5184de182325bbf             2728 main/binary-arm64/Packages
+ 350750cf5e07dd10b2bfb2a2db2454fd72036a3d31cab864109f85ce4f8e224a             1467 main/binary-arm64/Packages.gz
+ d452ee40428cef461faf53f111a5b563035b7ba0ae44bb2244a686765ea103cb             2747 main/binary-armhf/Packages
+ 0ad020d085f0b728f4be509a58f616c22098b05e9ac165298def9bc98fd093a7             1471 main/binary-armhf/Packages.gz
+SHA512:
+ aa4cdb22afa9863a341501cf3356d9fe1bed51a5b5767f40d255b20e87f391a29bcf25a333ef46f162d7d2e9cce8cf7d32a24eb338fe53af6bff05a4ae3082f7             2728 main/binary-amd64/Packages
+ 1c68f6400acbabd7000bf4d25c0e617b37fbf7927919d9998acda8e3ae864c00d1e5be71cced39c7b7952d3a9dbde59509d76c119d9bdb60a50a0a2c590c442b             1463 main/binary-amd64/Packages.gz
+ 2a93afb3e4037129a6939acee482612d6af4b588b9eb795619213230a991ec797ee31cea741c335250186a95f42f86d7228e5065e4b4fbb9b8d50bd9c515b911             2728 main/binary-arm64/Packages
+ af9f0608379c6280cd719f0fc513d4baf24062ed16e66c24923bdde27b1dc10a432bc7bcfb38cb955804b043f977c32d67e1861ca120cdc2fdf5f29e59e7e18a             1467 main/binary-arm64/Packages.gz
+ da22f834b170eed5bf7921f272cfc9e485088bda218efda8d494052fe6abccdbe63547ee011e544f8dba4569c95b5c462b3cf9e54266acc351925ca3f9612773             2747 main/binary-armhf/Packages
+ 8e52adc8d86a449059c4ed98d33d6b12d9927eb65f8eabc6ea968d33008f7dcb7df1d049a97aad210da486c7fcbe7329c2764c02078279eff12c704e4ca9b63d             1471 main/binary-armhf/Packages.gz

@@ -1,0 +1,63 @@
+Package: latd
+Architecture: arm64
+Version: 1.31-1+deb13
+Priority: optional
+Section: net
+Maintainer: Hans Hübner <hans.huebner@gmail.com>
+Installed-Size: 464
+Depends: libc6 (>= 2.38), libstdc++6 (>= 13.1)
+Filename: pool/trixie/latd_1.31-1+deb13_arm64.deb
+Size: 102308
+MD5sum: 0ea9591b814df3c447352b78cccd0709
+SHA1: 25c7ce452962ca1519087a355d2ec38bb87e6ba9
+SHA256: 32b1e806702af15512ea69806e6e999522aa330f355790da7598474f038e1cfd
+SHA512: e08e55b43dda1f92079300617310867847bdd5b8ed542cb65083721ab44c0f2539de044674d8593a3a95be6d6c7b6ec72bb1ece5c401a9634b15a5f538fd4c13
+Homepage: https://github.com/vzekc/retrostar
+Description: LAT (Local Area Transport) server
+ latd offers LAT services to terminal servers such as DEC's DECservers and
+ connects to LAT services elsewhere on the LAN (llogin). latcp configures the
+ running daemon; /etc/latd.conf is run as a shell script of latcp commands
+ when latd starts.
+ .
+ This build offers no default login service: a service exists only once
+ /etc/latd.conf adds one.
+
+Package: mopd
+Architecture: arm64
+Version: 2.5.3-1+deb13
+Priority: optional
+Section: net
+Maintainer: Hans Hübner <hans.huebner@gmail.com>
+Installed-Size: 389
+Depends: libc6 (>= 2.38)
+Filename: pool/trixie/mopd_2.5.3-1+deb13_arm64.deb
+Size: 50472
+MD5sum: 7a48b8ea070b400bb614bb53a7f5e552
+SHA1: 322dff0d8cdc33db7fda3d26c0a3a0eb53a2ba43
+SHA256: d03dd5f0cc52a901df01dfc0e5aa713b4c54a116fa0d905806646b3d29845967
+SHA512: 9dd8f52ca3e8ec907924f4b294842702e22fe4d406b9c661feba729d3cf88c6c95f2db58194f0232fc2c5f8369c1b38adc71026341a9fba6bb398b3f40d510d6
+Homepage: https://github.com/dreamlayers/netbsd-mopd
+Description: MOP (Maintenance Operation Protocol) loader and tools
+ mopd answers MOP load requests from DEC machines and terminal servers booting
+ over Ethernet, serving the files in /tftpboot/mop. The tools: mopchk checks a
+ load file, mopcopy converts ELF and a.out files to MOP format, mopprobe and
+ moptrace watch MOP traffic on the LAN.
+ .
+ A file is found by the name the client asks for, or by the client's Ethernet
+ address in lowercase hex with .SYS appended: 08002b90649f.SYS.
+
+Package: retrostar-client
+Architecture: all
+Version: 1.1-1
+Priority: optional
+Section: net
+Maintainer: Hans Hübner <hans.huebner@gmail.com>
+Depends: openvpn, ebtables, tcpdump, lsof, curl
+Filename: pool/trixie/retrostar-client_1.1-1_all.deb
+Size: 4440
+MD5sum: 21852433a730087a974679b5da540dd8
+SHA1: 0818d3dc8e3b5b456d9751a6f6616ef7d2f6cec9
+SHA256: 6475ded2a3f0d3518e8ad18a272faae8ef381a06fe68acda0d4053e9ec75cfb7
+SHA512: e1827f7db1d327c913df417ac24cb1ef4ff42c8059faf7b028101fa79b695e405b29e9885eb0f28f4aa6a850ef58446b854e1f50e0eefc90247b70d0e0b38f56
+Description: This is the client package needed to connect to the RetroStar network
+

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="de">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RetroStar-Pakete</title>
+<style>
+  body { font: 16px/1.5 system-ui, sans-serif; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; }
+  pre { background: #f4f4f4; padding: .75rem; overflow-x: auto; }
+</style>
+<h1>RetroStar-Pakete</h1>
+<p>Das apt-Repository des <a href="https://retrostar.classic-computing.de/">RetroStar</a>
+für Debian und Raspberry Pi OS, bookworm und trixie, auf amd64, arm64 und armhf:</p>
+<ul>
+  <li><b>retrostar-client</b> — die Verbindung zum RetroStar</li>
+  <li><b>latd</b> — LAT-Server</li>
+  <li><b>mopd</b> — MOP-Loader</li>
+</ul>
+<p>Den Client richtet das Installationsskript ein, zusammen mit diesem Repository:</p>
+<pre>bash -c "$(curl -fsSL https://retrostar.classic-computing.de/install.sh)"</pre>
+<p>Von Hand:</p>
+<pre>sudo curl -fsSLo /etc/apt/keyrings/retrostar.gpg https://vzekc.github.io/retrostar/retrostar-archive-keyring.gpg
+. /etc/os-release
+sudo tee /etc/apt/sources.list.d/retrostar.sources &lt;&lt;EOD
+Types: deb
+URIs: https://vzekc.github.io/retrostar/
+Suites: $VERSION_CODENAME
+Components: main
+Signed-By: /etc/apt/keyrings/retrostar.gpg
+EOD
+sudo apt update</pre>
+<p>Signaturschlüssel <code>76C4 60DC 3D31 2563 54FA 9537 80FA DCE6 C769 0120</code>,
+<a href="retrostar-archive-keyring.asc">retrostar-archive-keyring.asc</a>.
+Quellen: <a href="https://github.com/vzekc/retrostar">github.com/vzekc/retrostar</a>.</p>
+</html>

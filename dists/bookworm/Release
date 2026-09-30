@@ -1,0 +1,36 @@
+Architectures: amd64 arm64 armhf
+Codename: bookworm
+Components: main
+Date: Wed, 30 Sep 2026 17:56:56 +0000
+Description: RetroStar packages for Debian bookworm
+Label: RetroStar
+Origin: RetroStar
+Suite: bookworm
+MD5Sum:
+ bf3c18b77d81069d777d3daf89f78086             2732 main/binary-amd64/Packages
+ 9f9694157d22e54879056cdc5fa9ebda             1459 main/binary-amd64/Packages.gz
+ 987988ac55d0fb00a1d3c338d93960bd             2732 main/binary-arm64/Packages
+ 5d9be9098b864b8f67e749ab75702e18             1461 main/binary-arm64/Packages.gz
+ 1ea6114a41c3a18a2d90da223978d9f1             2731 main/binary-armhf/Packages
+ dc9df7916750dcf0a179d333cf6b9a98             1464 main/binary-armhf/Packages.gz
+SHA1:
+ d769a69dd8a8c2e47fa2f667748b5c5df872f842             2732 main/binary-amd64/Packages
+ ed65c7ae63dd395feb420f9eea092c001bebd14e             1459 main/binary-amd64/Packages.gz
+ 0703624bcb6234796b51b7ff3660b2fdfbd3db42             2732 main/binary-arm64/Packages
+ 1605b249d4fd11030e11eb135cce137b2e432de5             1461 main/binary-arm64/Packages.gz
+ 1c4fb216e89102f7207e546b22bdb55a7b94c74d             2731 main/binary-armhf/Packages
+ 041fabebfcee03fbc494e654f19681d19f4a9ada             1464 main/binary-armhf/Packages.gz
+SHA256:
+ de3f88c1a18077659969530c5b9ab811866097805d726328126b7c53d16a7366             2732 main/binary-amd64/Packages
+ 1975713fb7a0c1d99c71e5a75ab6a05b29bf2a294024212f31183b8685909b6e             1459 main/binary-amd64/Packages.gz
+ 3acb0d822396403af58655712b62eaaa95b2797f2cb89b9b9894bf201bf2658f             2732 main/binary-arm64/Packages
+ a648561c06ff624cd4e1141b42f4986ce982648d71d698db1fb18b88a00750e4             1461 main/binary-arm64/Packages.gz
+ 394ffe920105884d9f3cb30c593a6bdd11c6e30469997a6c97fb1ae926bb08a2             2731 main/binary-armhf/Packages
+ 2ac495eff5593dba3a7905bfb52dbc10153a9e9744a2fb19cdfffca877d977f1             1464 main/binary-armhf/Packages.gz
+SHA512:
+ d259c0ae0a6b71e4bb9f1ca24e9c67c195f2444a4ac235ae86d904c616c81de5e8a8021da8dabda3101183b51bb2fef69d5b9c872030d13e3e2a4592a5106251             2732 main/binary-amd64/Packages
+ c5f420d43c756abaf655dab3e7c4286fa1d5a31c64496984b903fb5764c8e355edfcef4a6408bad706db7e310677fba3932deb1a809dc7790ec8b7575e99b16a             1459 main/binary-amd64/Packages.gz
+ 85db8d50d2128b119a82b0c48f73674828ccbf6ab2babf4a876c4113f0cc899df94a8a1365c6858bc5ea436ac8e2964a6cc96b6044b2c2f3cb723be1aacbb0f6             2732 main/binary-arm64/Packages
+ 3f040476d4280483b1d904d1d7990c539313a2b08e0603dda911e91f3eb54030e975f663f89aa3817fd02dcd4d9775a13dc4262ca88eca4b4efeedf324eae219             1461 main/binary-arm64/Packages.gz
+ 64702a5ff7912c24ab3c7f8fb1338a5e1955896ee1e503c899a94fa47682c4d56774884e55550e4ef97c53dcebabd957d6ce0ab43869c154b716b872842fd4af             2731 main/binary-armhf/Packages
+ a922e0313320c5cdae5ff8299b7e15bb5266acbedb2e8bcc3ce763abf20417c43961eff2f4e28976520d1f28886871d3b286ee243658c67b8085a1d664823c85             1464 main/binary-armhf/Packages.gz

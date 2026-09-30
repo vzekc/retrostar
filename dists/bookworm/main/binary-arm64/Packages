@@ -1,0 +1,63 @@
+Package: latd
+Architecture: arm64
+Version: 1.31-1+deb12
+Priority: optional
+Section: net
+Maintainer: Hans Hübner <hans.huebner@gmail.com>
+Installed-Size: 466
+Depends: libc6 (>= 2.34), libstdc++6 (>= 11)
+Filename: pool/bookworm/latd_1.31-1+deb12_arm64.deb
+Size: 103052
+MD5sum: 871f7c642a90f4e773e62c2f8cc7c94b
+SHA1: e24de3691cf0187af47afb6a20c74707475e090a
+SHA256: 3509cc110cb874b10f91a5c4f390983a7f9b5edf77df1c19ca44ca76514c74a9
+SHA512: 79037bdf296ffc6786cd9150680e98d2ddcfc2c5efebd2d27fd0b25f3d6bf9aa2261202ce1ccd2eeb7e626814e1c4cf98be0c3cd751392cfecd018e5e3a143a5
+Homepage: https://github.com/vzekc/retrostar
+Description: LAT (Local Area Transport) server
+ latd offers LAT services to terminal servers such as DEC's DECservers and
+ connects to LAT services elsewhere on the LAN (llogin). latcp configures the
+ running daemon; /etc/latd.conf is run as a shell script of latcp commands
+ when latd starts.
+ .
+ This build offers no default login service: a service exists only once
+ /etc/latd.conf adds one.
+
+Package: mopd
+Architecture: arm64
+Version: 2.5.3-1+deb12
+Priority: optional
+Section: net
+Maintainer: Hans Hübner <hans.huebner@gmail.com>
+Installed-Size: 390
+Depends: libc6 (>= 2.34)
+Filename: pool/bookworm/mopd_2.5.3-1+deb12_arm64.deb
+Size: 49864
+MD5sum: 5c07d58755b1024f434e911310243097
+SHA1: 57f0aa54c1099be128335d38dc0f83ae7b57fd9d
+SHA256: 7518de22f3283b22dd2d24d9841dfb9ed08f9401f8468e61f172caaac9103700
+SHA512: 38af94a7a41f1db70047bc425eda83c4b44d59c7a56c2c5e055691f90cd8d52b759549c916845a16bb4e82f12a0b931c8ce1e7eca50ca6efeecbd74f21476371
+Homepage: https://github.com/dreamlayers/netbsd-mopd
+Description: MOP (Maintenance Operation Protocol) loader and tools
+ mopd answers MOP load requests from DEC machines and terminal servers booting
+ over Ethernet, serving the files in /tftpboot/mop. The tools: mopchk checks a
+ load file, mopcopy converts ELF and a.out files to MOP format, mopprobe and
+ moptrace watch MOP traffic on the LAN.
+ .
+ A file is found by the name the client asks for, or by the client's Ethernet
+ address in lowercase hex with .SYS appended: 08002b90649f.SYS.
+
+Package: retrostar-client
+Architecture: all
+Version: 1.1-1
+Priority: optional
+Section: net
+Maintainer: Hans Hübner <hans.huebner@gmail.com>
+Depends: openvpn, ebtables, tcpdump, lsof, curl
+Filename: pool/bookworm/retrostar-client_1.1-1_all.deb
+Size: 4440
+MD5sum: 21852433a730087a974679b5da540dd8
+SHA1: 0818d3dc8e3b5b456d9751a6f6616ef7d2f6cec9
+SHA256: 6475ded2a3f0d3518e8ad18a272faae8ef381a06fe68acda0d4053e9ec75cfb7
+SHA512: e1827f7db1d327c913df417ac24cb1ef4ff42c8059faf7b028101fa79b695e405b29e9885eb0f28f4aa6a850ef58446b854e1f50e0eefc90247b70d0e0b38f56
+Description: This is the client package needed to connect to the RetroStar network
+
