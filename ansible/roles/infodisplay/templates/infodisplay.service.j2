@@ -1,0 +1,17 @@
+{{ ansible_managed | comment }}
+[Unit]
+Description=Siemens 9772 information display
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 -u {{ infodisplay_dir }}/infodisplay.py {{ infodisplay_port }} --url {{ infodisplay_url }} --seconds {{ infodisplay_seconds }} --pages {{ infodisplay_pages | join(',') }}
+DynamicUser=yes
+SupplementaryGroups=dialout
+# The adapter may be plugged in after boot, or the terminal's cable pulled;
+# the program starts again until the port is there.
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

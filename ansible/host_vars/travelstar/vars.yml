@@ -29,3 +29,6 @@ lat_services:
   - name: FOTOKERMIT
     ident: FotoFix kermit
     command: /usr/bin/socat STDIO,raw,echo=0 TCP:{{ fotofix_address }}:2301
+
+# The Siemens 9772 at the exhibition shows its information pages.
+infodisplay_url: https://2026.classic-computing.de

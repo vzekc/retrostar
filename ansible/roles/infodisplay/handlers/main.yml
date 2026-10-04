@@ -1,0 +1,5 @@
+- name: restart infodisplay
+  systemd_service:
+    name: infodisplay
+    state: restarted
+    daemon_reload: true

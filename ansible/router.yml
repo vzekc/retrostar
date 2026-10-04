@@ -30,3 +30,6 @@
     - role: lat
       tags: lat
       when: lat_services | length > 0
+    - role: infodisplay
+      tags: infodisplay
+      when: infodisplay_url | length > 0

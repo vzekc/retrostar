@@ -1,0 +1,26 @@
+- name: Install what the display program needs
+  apt:
+    name: [git, python3-serial]
+    state: present
+
+- name: Check out the display program
+  git:
+    repo: '{{ infodisplay_repo }}'
+    dest: '{{ infodisplay_dir }}'
+    version: '{{ infodisplay_version }}'
+    depth: 1
+  notify: restart infodisplay
+
+- name: Install the service
+  template:
+    src: infodisplay.service.j2
+    dest: /etc/systemd/system/infodisplay.service
+    mode: '0644'
+  notify: restart infodisplay
+
+- name: Ensure the display is running
+  systemd_service:
+    name: infodisplay
+    state: started
+    enabled: true
+    daemon_reload: true

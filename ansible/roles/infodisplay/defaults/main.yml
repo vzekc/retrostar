@@ -1,0 +1,16 @@
+# An information display for an exhibition: a Siemens 9772 terminal on a
+# USB RS-422 adapter, showing pages from the exhibition's exhibitron site in
+# turn. The program is infodisplay.py from the siemens-9772 repository.
+infodisplay_repo: https://code.netzhansa.com/hanshuebner/siemens-9772.git
+infodisplay_version: main
+infodisplay_dir: /opt/siemens-9772
+# The adapter's device. /dev/serial/by-id/… keeps the name when other USB
+# serial devices come and go.
+infodisplay_port: /dev/ttyUSB0
+# The exhibition's site; its /api/infodisplay is what the pages show. Empty,
+# the router has no display.
+infodisplay_url: ''
+# Seconds each page stays on screen.
+infodisplay_seconds: 15
+# The pages, in order: fotofix, chart, programm, info, tisch.
+infodisplay_pages: [fotofix, chart, programm, info, tisch]
