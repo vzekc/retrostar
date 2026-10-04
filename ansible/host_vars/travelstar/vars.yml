@@ -32,3 +32,4 @@ lat_services:
 
 # The Siemens 9772 at the exhibition shows its information pages.
 infodisplay_url: https://2026.classic-computing.de
+infodisplay_port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_BG044TU5-if00-port0
