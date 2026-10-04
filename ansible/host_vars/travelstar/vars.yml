@@ -25,10 +25,10 @@ lat_packages: [socat]
 lat_services:
   - name: FOTOFIX
     ident: FotoFix login
-    command: /usr/bin/socat STDIO,raw,echo=0 TCP:{{ fotofix_address }}:2300
+    command: /usr/local/bin/lat-fotofix {{ fotofix_address }} 2300
   - name: FOTOKERMIT
     ident: FotoFix kermit
-    command: /usr/bin/socat STDIO,raw,echo=0 TCP:{{ fotofix_address }}:2301
+    command: /usr/local/bin/lat-fotofix {{ fotofix_address }} 2301
 
 # The Siemens 9772 at the exhibition shows its information pages.
 infodisplay_url: https://2026.classic-computing.de

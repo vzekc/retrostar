@@ -18,6 +18,14 @@
     content: '{{ lat_issue }}'
     mode: '0644'
 
+- name: Install the FotoFix connector
+  # What a service runs to reach fotofix's serial agent, naming the session's
+  # terminal server and port to it.
+  copy:
+    src: lat-fotofix
+    dest: /usr/local/bin/lat-fotofix
+    mode: '0755'
+
 - name: Configure the services
   template:
     src: latd.conf.j2

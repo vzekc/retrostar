@@ -7,7 +7,7 @@ lat_interface: br0
 #   lat_services:
 #     - name: FOTOFIX
 #       ident: FotoFix login
-#       command: /usr/bin/socat STDIO,raw,echo=0 TCP:192.168.2.208:2300
+#       command: /usr/local/bin/lat-fotofix 192.168.2.208 2300
 #       user: nobody
 lat_services: []
 # Packages the services' commands need.
