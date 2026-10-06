@@ -25,7 +25,6 @@
     "koa-static": "^5.0.0",
     "koa-websocket": "^7.0.0",
     "marked": "^12.0.0",
-    "node-pty": "^1.1.0-beta28",
     "nodemon": "^3.0.3",
     "passport-local": "^1.0.0",
     "passport-openidconnect": "^0.1.2",

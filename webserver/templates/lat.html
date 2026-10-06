@@ -6,6 +6,9 @@
     Diese Systeme sind per LAT zu erreichen.  Durch Klick auf den Namen kannst
     Du eine Terminalverbindung herstellen.
   </p>
+  <% if (services.length === 0) { %>
+  <p>Zur Zeit ist kein System per LAT zu erreichen.</p>
+  <% } else { %>
   <table>
     <thead>
     <tr>
@@ -22,6 +25,17 @@
     <% } %>
     </tbody>
   </table>
+  <% } %>
+</div>
+<div class="terminal-controls">
+  <p>
+    <button id="break">Break</button>
+    Break (oder die Pause-Taste) führt zum Prompt <code>Local&gt;</code> des
+    Terminalservers.  Dort zeigt <code>SHOW SERVICES</code> die erreichbaren
+    Systeme, <code>CONNECT</code> verbindet zu einem weiteren,
+    <code>RESUME</code> kehrt zur Sitzung zurück und <code>LOGOUT</code>
+    beendet die Verbindung.  <code>HELP</code> erklärt alle Befehle.
+  </p>
 </div>
 <div id="terminal"></div>
 <script src="lat.js"></script>

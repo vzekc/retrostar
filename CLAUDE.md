@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-RetroStar is a network monitoring and terminal access platform for VzEkC e.V. (German vintage computer club). It discovers retro computers connected to a network bridge, tracks their Ethernet protocols, and provides browser-based LAT terminal access.
+RetroStar is a network monitoring and terminal access platform for VzEkC e.V. (German vintage computer club). It discovers retro computers connected to a network bridge, tracks their Ethernet protocols, and provides browser-based LAT terminal access through the lattice terminal server.
 
 ## Repository Structure
 
@@ -15,7 +15,8 @@ RetroStar is a network monitoring and terminal access platform for VzEkC e.V. (G
 - **scripts/** - Package build and apt repository publishing, used by CI
 - **ansible/** - Setup of RetroStar routers: generic roles, `router.yml`, `bring-up` for a new card, and each router's `host_vars` (see `ansible/README.md`)
 - **keys/** - Public half of the apt repository's signing key, and the repository's index page
-- **systemd/** - Service unit files (webserver, bridge, openvpn, protomon, latd)
+- **systemd/** - Service unit files (webserver, bridge, openvpn, protomon)
+- **lattice/** - The server's configuration of the lattice terminal server
 - **Shell scripts** - Infrastructure utilities (bridge creation, user management, package building)
 
 ## Commands
@@ -43,6 +44,7 @@ CI (`.github/workflows/`) does both; nothing is deployed by hand.
 
 - **packages.yml** builds `latd` and `mopd` for bookworm and trixie on amd64, arm64 and armhf (ARM under qemu), and `retrostar-client` once, then publishes them into the signed apt repository on the `gh-pages` branch, served at https://vzekc.github.io/retrostar/. A package's version counts the commits that touched `packages/<name>`, so it changes exactly when the package does; a file already in the pool is never replaced. The signing key is the `APT_SIGNING_KEY` secret. The armhf builds are Debian's ARMv7 armhf and do not run on ARMv6 Pis (Pi 1, Zero).
 - **deploy.yml** runs `deploy.sh` on the server over ssh: fetch main over HTTPS, `npm ci`, migrations, restart `retrostar-webserver`. The key (`DEPLOY_SSH_KEY`) is restricted on the server to that script.
+- The server runs the `lattice` package from https://code.netzhansa.com/hanshuebner/lattice (apt repository `https://code.netzhansa.com/api/packages/hanshuebner/debian stable main`) with `lattice/lattice.yml`: latticed on `br0`, offering LAT alone (`tcpip: false`), with the user socket `/run/latticed/users.sock` for the web terminal. The web server's user is in the group `latticed` to reach it.
 - `install.sh` (`webserver/templates/install.sh.ejs`) adds the apt repository and installs `retrostar-client`. The package's `preinst` asks for the installation key only on a first installation without `/etc/retrostar/openvpn.conf`; `RETROSTAR_INSTALL_KEY` supplies it unattended.
 
 ## Code Style
@@ -58,7 +60,7 @@ Tests require a running PostgreSQL instance. The test fixture creates an isolate
 The server interacts with Linux-specific tools at runtime:
 - `bridge fdb show` for host discovery on `br0`
 - `tcpdump` on `br0` for protocol monitoring
-- `llogin` for LAT terminal sessions (spawned via `node-pty`)
+- latticed's user socket for LAT terminal sessions and the list of LAT services
 - TAP interface files in `/var/run/retrostar/clients/`
 
 These won't be available in typical development environments; the webserver still starts but bridge/protocol features will be inactive.

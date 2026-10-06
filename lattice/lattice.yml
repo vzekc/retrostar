@@ -1,0 +1,18 @@
+# latticed for RetroStar's web terminal: users come through the user socket
+# from the web server and reach LAT services on the bridge, and nothing
+# else. Installed as /etc/lattice/lattice.yml over the lattice package's;
+# /usr/share/doc/lattice/lattice.example.yml documents every setting.
+
+server:
+  name: RETROSTAR
+  identification: RetroStar web terminal
+  interface: br0
+  tcpip: false
+  # The web server's user must be in the group latticed to connect.
+  user_socket: /run/latticed/users.sock
+  idle_timeout: 60
+  auto_usb: false
+  login_service:
+    enabled: false
+  privileged:
+    enabled: false

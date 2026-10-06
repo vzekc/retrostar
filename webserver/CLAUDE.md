@@ -34,6 +34,7 @@ This is a Node.js/Koa web server for RetroStar, a retro computing network platfo
 - **bridgeInfo.js** - Polls `bridge fdb show` every second to discover hosts on `br0`, maps TAP interfaces to users via `tapInterfaces.js`, and updates the database.
 - **protoMon.js** - Spawns `tcpdump` on `br0` to detect Ethernet protocols per host. Uses an expiring set (10-minute TTL).
 - **ethernetToDecnet.js** - Converts DECnet MAC addresses (`AA:00:04:00:xx:xx`) to DECnet node IDs (`area.node`).
+- **lattice.js** - Client of latticed's user socket (`LATTICE_SOCKET`, default `/run/latticed/users.sock`): lists the LAT services and opens users' sessions at its `Local>` prompt.
 
 ### Authentication
 
@@ -45,7 +46,7 @@ Server-rendered templates in `templates/` (EJS + HTML + Markdown), static assets
 
 ### WebSocket endpoints
 
-- `/ws/lat/:host` - Bidirectional terminal to a LAT host via `node-pty` spawning `llogin`.
+- `/ws/lat/:host` - Bidirectional terminal: a session at latticed's `Local>` prompt, connected to the LAT service `host`. Text frames are typed input; the page sends BREAK (0xFF 0xF3) as a binary frame.
 - `/ws/event-log` - Real-time event stream using PostgreSQL LISTEN/NOTIFY.
 
 ### Database

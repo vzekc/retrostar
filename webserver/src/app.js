@@ -11,9 +11,6 @@ const { koaBody } = require('koa-body')
 const koaStatic = require('koa-static')
 const { createSession: session } = require('koa-session')
 const websockify = require('koa-websocket')
-const pty = require('node-pty')
-const util = require('util')
-const exec = util.promisify(require('child_process').exec)
 const passport = require('koa-passport')
 const OIDCStrategy = require('passport-openidconnect').Strategy
 const sanitizeHtml = require('sanitize-html')
@@ -22,6 +19,7 @@ const Ajv = require('ajv')
 
 const db = require('./db')
 const event = require('./event')
+const lattice = require('./lattice')
 
 const app = websockify(new Koa())
 const router = new Router()
@@ -231,25 +229,11 @@ router.get('/status', async (ctx, next) => {
 
 const getLatServices = async () => {
   try {
-    const { stdout } = await exec('llogin -d')
-    return stdout
-      .trim()
-      .split('\n')
-      .map((line) => {
-        const [_, name, status, description] = line.match(
-          /^(\S+)\s+(\S+)\s+(.*)$/
-        )
-        return { name, status, description }
-      })
-      .filter(({ status }) => status === 'Available')
+    const services = await lattice.getServices()
+    return services.filter(({ available }) => available)
   } catch (e) {
-    return [
-      {
-        name: 'dummy',
-        status: 'Available',
-        description: 'llogin is not installed',
-      },
-    ]
+    console.log('cannot list LAT services:', e.message)
+    return []
   }
 }
 
@@ -653,7 +637,7 @@ app.ws.use(
     if (!ctx.state.user) {
       console.log('unauthorized websocket connection')
       await printOnTerminal('Du bist nicht angemeldet.')
-      setInterval(() => ctx.websocket.close(), 5000)
+      setTimeout(() => ctx.websocket.close(), 5000)
       return
     }
 
@@ -666,31 +650,36 @@ app.ws.use(
       { username, host }
     )
 
-    await printOnTerminal(`Verbinde zu ${host}...`)
-    const ptyProcess = pty.spawn(
-      '/bin/bash',
-      ['-c', `llogin -n "web.${username}" ${host}`],
-      {
-        name: 'vt100',
-        env: process.env,
-        cwd: process.env.HOME,
-        cols: 80,
-        rows: 24,
-      }
-    )
+    const session = lattice.login({
+      name: `web.${username}`,
+      source: ctx.get('x-forwarded-for').split(',')[0].trim() || ctx.ip,
+      terminal: 'vt100',
+      type: 'ANSI',
+      width: 80,
+      height: 24,
+      connect: host,
+    })
 
-    ctx.websocket.on('message', (data) => ptyProcess.write(data))
-    ctx.websocket.on('error', () => ptyProcess.kill())
-    ctx.websocket.on('close', () => ptyProcess.kill())
-    ptyProcess.on('data', (data) => ctx.websocket.send(data))
-    ptyProcess.on('exit', async () => {
+    // Text frames are typed input; a binary frame is passed on as it is,
+    // such as the BREAK the page sends.
+    ctx.websocket.on('message', (data, isBinary) =>
+      session.write(isBinary ? data : lattice.escapeInput(data))
+    )
+    ctx.websocket.on('error', () => session.destroy())
+    ctx.websocket.on('close', () => session.destroy())
+    session.on('data', (data) => ctx.websocket.send(data))
+    session.on('error', (e) => {
+      console.log('lattice:', e.message)
+      printOnTerminal('Der Terminalserver ist nicht erreichbar')
+    })
+    session.on('close', async () => {
       printOnTerminal('Verbindung beendet')
       await event.publish(
         'lat-connect',
         `${username} hat die LAT-Verbindung zu ${host} beendet`,
         { username, host }
       )
-      setInterval(() => ctx.websocket.close(), 5000)
+      setTimeout(() => ctx.websocket.close(), 5000)
     })
   })
 )
