@@ -34,7 +34,9 @@ fotofix_address: 192.168.2.208
 # program's own question.
 fotofix_lat_origin:
   FOTOFIX_ORIGIN: "lat:{node}:{port}"
-fotofix_lat_terminals: {}
+fotofix_lat_terminals:
+  # The GIGI (VK100) on m32's first port.
+  M32 PORT_1: vk100
 lat_services:
   - name: FOTOFIX
     description: FotoFix - das Foto auf diesem Terminal
