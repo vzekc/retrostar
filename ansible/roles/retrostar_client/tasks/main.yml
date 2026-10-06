@@ -43,6 +43,12 @@
     force: false
   no_log: true
 
+- name: Install telnet
+  # For reaching machines on the RetroStar network from the router.
+  apt:
+    name: telnet
+    update_cache: true
+
 - name: Install the RetroStar client
   # Detached, since the package restarts NetworkManager on its first
   # installation and the connection may drop with it.
