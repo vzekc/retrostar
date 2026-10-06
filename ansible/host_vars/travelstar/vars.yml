@@ -10,6 +10,11 @@ operator_groups: [users, sudo, adm, dialout, netdev]
 
 # The dongle's RTL8188CUS runs under rtl8192cu; the two other drivers that
 # claim it are kept off. bring-up loads the driver on the card's first boot.
+# The Pi's USB controller must stay on its default dwc_otg driver: under
+# dtoverlay=dwc2 in /boot/firmware/config.txt the dongle loses a third of its
+# packets at full signal, DHCP renewals fail and NetworkManager drops the
+# wifi. rtl8xxxu is no alternative, as the Raspberry Pi kernel's rtl8xxxu
+# does not claim the EW-7811Un (7392:7811).
 usb_wifi_blacklist: [rtl8xxxu, 8192cu]
 usb_wifi_driver: rtl8192cu
 
