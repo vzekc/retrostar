@@ -1,4 +1,4 @@
-- name: restart latd
+- name: restart latticed
   systemd_service:
-    name: latd
+    name: latticed
     state: restarted

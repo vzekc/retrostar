@@ -1,8 +1,0 @@
-{{ ansible_managed | comment }}
-# Run by latcp -s once latd is up, before the first service announcement.
-{% for service in lat_services %}
-
-$LATCP -A -a {{ service.name }} -i "{{ service.ident | default(service.name) }}" -u {{ service.user | default('nobody') }} -C "{{ service.command }}"
-{% endfor %}
-
-exit

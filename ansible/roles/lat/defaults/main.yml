@@ -1,18 +1,20 @@
-# latd on the bridge, so terminal servers on the router's wire and on the
+# lattice on the bridge, so terminal servers on the router's wire and on the
 # RetroStar network behind it reach its services alike.
 lat_interface: br0
-# The services latd offers. A session runs `command` under `user` on a pty;
-# latd splits the command at spaces and knows no quoting.
+# The router's LAT node name and what it announces itself as.
+lat_node: "{{ inventory_hostname | upper }}"
+lat_identification: "{{ inventory_hostname }}"
+# The services the router offers. Each session to one is carried to a telnet
+# host, as lattice's services section has it (lattice.example.yml documents
+# every key): the host hears the terminal configured for the session's node
+# and port, its line speed, and environment variables in which {node} and
+# {port} stand for where the session comes from.
 #
 #   lat_services:
 #     - name: FOTOFIX
-#       ident: FotoFix login
-#       command: /usr/local/bin/lat-fotofix 192.168.2.208 2300
-#       user: nobody
+#       description: FotoFix photo program
+#       telnet: 192.168.2.208:23
+#       speed: 9600
+#       terminals: {DSRV01 PORT_3: vk100}
+#       environment: {FOTOFIX_ORIGIN: "lat:{node}:{port}"}
 lat_services: []
-# Packages the services' commands need.
-lat_packages: []
-# What latd sends a session before its command starts, written to
-# /etc/issue.lat. Empty, it sends nothing, rather than the system's
-# /etc/issue.net.
-lat_issue: ''

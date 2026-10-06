@@ -1,0 +1,16 @@
+{{ ansible_managed | comment }}
+#
+# latticed on a router: LAT services carried to telnet hosts, and nothing
+# else — no users of its own, no serial ports, no listeners.
+{{ {
+  'server': {
+    'name': lat_node,
+    'identification': lat_identification,
+    'interface': lat_interface,
+    'tcpip': false,
+    'auto_usb': false,
+    'login_service': {'enabled': false},
+    'privileged': {'enabled': false},
+  },
+  'services': lat_services,
+} | to_nice_yaml(indent=2) }}

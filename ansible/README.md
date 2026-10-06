@@ -15,7 +15,7 @@ is one. [`router.yml`](router.yml) sets them up:
 | `usb_wifi` | keeps the wrong drivers off a wifi dongle | `usb_wifi_blacklist` |
 | `retrostar_client` | `retrostar-client` from the RetroStar apt repository, its configuration fetched with the installation key | `retrostar_install_key_file` |
 | `mop` | `mopd` on the bridge, serving files from [`files/mop`](files/mop) | `mop_files` |
-| `lat` | `latd` on the bridge with the services it offers | `lat_services`, `lat_packages`, `lat_issue` |
+| `lat` | `latticed` on the bridge, offering LAT services carried to telnet hosts | `lat_services`, `lat_node` |
 | `infodisplay` | a Siemens 9772 on a USB RS-422 adapter showing an exhibition's information pages from its exhibitron site, with [`infodisplay.py`](https://code.netzhansa.com/hanshuebner/siemens-9772/src/branch/main/infodisplay.py) | `infodisplay_url`, `infodisplay_port`, `infodisplay_pages`, `infodisplay_seconds` |
 
 and any roles a router names in `router_extra_roles`, from
@@ -59,7 +59,6 @@ for the roles from elsewhere.
 ```sh
 journalctl -u retrostar   # the tunnel to the RetroStar network
 bridge link               # eth0 and the tunnel in br0
-latcp -d                  # the LAT node and its services
-latcp -d -l               # the services learned on the LAN
+journalctl -u latticed    # the LAT sessions and where each was carried
 journalctl -u mopd        # loads served
 ```

@@ -1,7 +1,7 @@
 # travelstar, Hans Hübner's router: a Raspberry Pi 2 on the wire of the
 # Classic Computing exhibition's network. It boots the DECserver 200/MC there
-# and offers its ports the FotoFix booth's login and kermit, which run on
-# fotofix's serial agent. It reaches the internet over an Edimax EW-7811Un.
+# and offers its ports the FotoFix booth's services, which run on fotofix's
+# serial agent. It reaches the internet over an Edimax EW-7811Un.
 
 router_image: armhf
 router_shell: /bin/zsh
@@ -26,14 +26,33 @@ mop_files:
 # fotofix's address on the exhibition network: the home network's here, the
 # hall's at the show, given there with -e fotofix_address=…
 fotofix_address: 192.168.2.208
-lat_packages: [socat]
+# The FotoFix services, each carried to fotofix's telnet port for it: the
+# photo program, the login and the Kermit server. fotofix records which
+# DECserver port each photo file went out of, from FOTOFIX_ORIGIN. A
+# DECserver port's terminal goes under terminals, by the DECserver's node
+# and port name; a session from a port not named there gets the photo
+# program's own question.
+fotofix_lat_origin:
+  FOTOFIX_ORIGIN: "lat:{node}:{port}"
+fotofix_lat_terminals: {}
 lat_services:
   - name: FOTOFIX
-    ident: FotoFix login
-    command: /usr/local/bin/lat-fotofix {{ fotofix_address }} 2300
+    description: FotoFix - das Foto auf diesem Terminal
+    telnet: "{{ fotofix_address }}:23"
+    speed: 9600
+    terminals: "{{ fotofix_lat_terminals }}"
+    environment: "{{ fotofix_lat_origin }}"
+  - name: FOTOSHELL
+    description: FotoFix login
+    telnet: "{{ fotofix_address }}:2323"
+    speed: 9600
+    terminals: "{{ fotofix_lat_terminals }}"
+    environment: "{{ fotofix_lat_origin }}"
   - name: FOTOKERMIT
-    ident: FotoFix kermit
-    command: /usr/local/bin/lat-fotofix {{ fotofix_address }} 2301
+    description: FotoFix Kermit-Server
+    telnet: "{{ fotofix_address }}:2324"
+    speed: 9600
+    environment: "{{ fotofix_lat_origin }}"
 
 # The Siemens 9772 at the exhibition shows its information pages.
 infodisplay_url: https://2026.classic-computing.de

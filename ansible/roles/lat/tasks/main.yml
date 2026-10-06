@@ -1,40 +1,56 @@
-- name: Install latd and what its services run
+- name: Remove latd
+  # lattice speaks LAT on the bridge in its place; the two cannot share it.
   apt:
-    name: "{{ ['latd'] + lat_packages }}"
+    name: latd
+    state: absent
+    purge: true
+
+- name: Remove what latd's services ran
+  file:
+    path: '{{ item }}'
+    state: absent
+  loop:
+    - /usr/local/bin/lat-fotofix
+    - /etc/latd.conf
+    - /etc/default/latd
+    - /etc/issue.lat
+
+- name: Ensure the keyring directory exists
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Add the lattice repository's signing key
+  get_url:
+    url: https://code.netzhansa.com/api/packages/hanshuebner/debian/repository.key
+    dest: /etc/apt/keyrings/lattice.asc
+    mode: '0644'
+
+- name: Add the lattice repository
+  apt_repository:
+    repo: >-
+      deb [signed-by=/etc/apt/keyrings/lattice.asc]
+      https://code.netzhansa.com/api/packages/hanshuebner/debian stable main
+    filename: lattice
     state: present
 
-- name: Serve LAT on the bridge
-  copy:
-    dest: /etc/default/latd
-    content: |
-      LATD_OPTIONS="-i {{ lat_interface }}"
-    mode: '0644'
-  notify: restart latd
-
-- name: Set the greeting a session starts with
-  # Read afresh for every session.
-  copy:
-    dest: /etc/issue.lat
-    content: '{{ lat_issue }}'
-    mode: '0644'
-
-- name: Install the FotoFix connector
-  # What a service runs to reach fotofix's serial agent, naming the session's
-  # terminal server and port to it.
-  copy:
-    src: lat-fotofix
-    dest: /usr/local/bin/lat-fotofix
-    mode: '0755'
+- name: Install lattice
+  apt:
+    name: lattice
+    state: latest
+    update_cache: true
+  notify: restart latticed
 
 - name: Configure the services
   template:
-    src: latd.conf.j2
-    dest: /etc/latd.conf
+    src: lattice.yml.j2
+    dest: /etc/lattice/lattice.yml
     mode: '0644'
-  notify: restart latd
+  notify: restart latticed
 
-- name: Ensure latd is running
+- name: Ensure latticed is running
   systemd_service:
-    name: latd
+    name: latticed
     state: started
     enabled: true
