@@ -35,18 +35,28 @@
     filename: lattice
     state: present
 
+- name: Ensure lattice's configuration directory exists
+  file:
+    path: /etc/lattice
+    state: directory
+    mode: '0755'
+
+- name: Configure the services
+  # Before the package, whose installation starts latticed: the packaged
+  # configuration would take every USB serial adapter as a port, the
+  # information display's among them. apt keeps a configuration file that is
+  # already there.
+  template:
+    src: lattice.yml.j2
+    dest: /etc/lattice/lattice.yml
+    mode: '0644'
+  notify: restart latticed
+
 - name: Install lattice
   apt:
     name: lattice
     state: latest
     update_cache: true
-  notify: restart latticed
-
-- name: Configure the services
-  template:
-    src: lattice.yml.j2
-    dest: /etc/lattice/lattice.yml
-    mode: '0644'
   notify: restart latticed
 
 - name: Ensure latticed is running
