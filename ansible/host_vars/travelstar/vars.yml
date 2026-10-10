@@ -59,3 +59,10 @@ lat_services:
 # The Siemens 9772 at the exhibition shows its information pages.
 infodisplay_url: https://2026.classic-computing.de
 infodisplay_port: /dev/serial/by-id/usb-FTDI_FT232R_USB_UART_BG044TU5-if00-port0
+
+# The IBM 3192 on the coax interface, a client of the TN3270 host on the
+# hall network.
+oec_host: 10.1.97.2:3270
+oec_port: /dev/serial/by-id/usb-coax-tcp_Coax_Interface_000000-if00
+# The coax interface shows only half the 3192's screen with EAB.
+oec_eab: false

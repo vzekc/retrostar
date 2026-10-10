@@ -17,6 +17,7 @@ is one. [`router.yml`](router.yml) sets them up:
 | `mop` | `mopd` on the bridge, serving files from [`files/mop`](files/mop) | `mop_files` |
 | `lat` | `latticed` on the bridge, offering LAT services carried to telnet hosts | `lat_services`, `lat_node` |
 | `infodisplay` | a Siemens 9772 on a USB RS-422 adapter showing an exhibition's information pages from its exhibitron site, with [`infodisplay.py`](https://code.netzhansa.com/hanshuebner/siemens-9772/src/branch/main/infodisplay.py) | `infodisplay_url`, `infodisplay_port`, `infodisplay_pages`, `infodisplay_seconds` |
+| `oec` | an IBM 3270 terminal on a lowobservable coax interface as a TN3270 client of one host, with [oec](https://github.com/lowobservable/oec) | `oec_host`, `oec_port`, `oec_eab`, `oec_version` |
 
 and any roles a router names in `router_extra_roles`, from
 [`requirements.yml`](requirements.yml) — its operator's account, say.

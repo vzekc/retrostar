@@ -1,0 +1,5 @@
+- name: restart oec
+  systemd_service:
+    name: oec
+    state: restarted
+    daemon_reload: true

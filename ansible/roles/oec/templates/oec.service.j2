@@ -1,0 +1,19 @@
+{{ ansible_managed | comment }}
+[Unit]
+Description=IBM 3270 terminal, TN3270 to {{ oec_host }}
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+WorkingDirectory={{ oec_dir }}/src
+Environment=PYTHONPATH={{ oec_dir }}/src
+ExecStart={{ oec_dir }}/venv/bin/python {{ '-m oec' if oec_eab else oec_dir ~ '/oec-without-eab.py' }} {{ oec_port }} tn3270 {{ oec_host }}
+DynamicUser=yes
+SupplementaryGroups=dialout
+# oec ends when the host closes the session or the interface goes away; it
+# starts again for the next session.
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

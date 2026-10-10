@@ -1,0 +1,15 @@
+# An IBM 3270 terminal on a lowobservable coax interface, as a TN3270 client
+# of one host, with oec.
+oec_repo: https://github.com/lowobservable/oec.git
+oec_version: 9d0e84782358cd2ed3df2d5601d71b12690423c4
+oec_dir: /opt/oec
+# The coax interface's device. /dev/serial/by-id/… keeps the name when other
+# USB serial devices come and go.
+oec_port: /dev/ttyACM0
+# The TN3270 host, as host:port. Empty, the router has no 3270.
+oec_host: ''
+# Whether oec uses the terminal's extended attribute buffer. With it, every
+# screen write is twice as long, and a coax interface that cannot take that
+# much at once shows only half the screen; false runs the terminal as a plain
+# 3278 without colour or highlighting.
+oec_eab: true

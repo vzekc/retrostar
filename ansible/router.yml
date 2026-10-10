@@ -33,3 +33,6 @@
     - role: infodisplay
       tags: infodisplay
       when: infodisplay_url | length > 0
+    - role: oec
+      tags: oec
+      when: oec_host | length > 0
