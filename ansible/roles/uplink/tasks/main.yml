@@ -1,0 +1,6 @@
+- name: Configure the uplink
+  template:
+    src: uplink.nmconnection.j2
+    dest: /etc/NetworkManager/system-connections/uplink.nmconnection
+    mode: '0600'
+  notify: apply uplink

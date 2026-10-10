@@ -6,4 +6,6 @@ usb_wifi_blacklist: []
 # and join nothing until their driver is loaded afresh.
 usb_wifi_driver: ''
 usb_wifi_interface: wlan0
+# false removes the watchdog, for a router whose dongle is out.
+usb_wifi_watchdog: true
 usb_wifi_watchdog_minutes: 2

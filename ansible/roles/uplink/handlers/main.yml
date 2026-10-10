@@ -1,0 +1,10 @@
+- name: apply uplink
+  # The connection ansible runs over may be the uplink itself; the command
+  # runs detached so that its brief interruption does not fail the play. It
+  # brings the uplink up only once NetworkManager has read its address.
+  shell: >-
+    nmcli connection reload &&
+    nmcli -g ipv4.addresses connection show uplink | grep -q . &&
+    nmcli connection up uplink
+  async: 60
+  poll: 0

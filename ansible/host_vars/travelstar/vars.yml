@@ -1,7 +1,8 @@
 # travelstar, Hans Hübner's router: a Raspberry Pi 2 on the wire of the
 # Classic Computing exhibition's network. It boots the DECserver 200/MC there
 # and offers its ports the FotoFix booth's services, which run on fotofix's
-# serial agent. It reaches the internet over an Edimax EW-7811Un.
+# serial agent. It reaches the internet over a USB Ethernet adapter, or over
+# an Edimax EW-7811Un when it is on wifi.
 
 router_image: armhf
 router_shell: /bin/zsh
@@ -17,6 +18,14 @@ operator_groups: [users, sudo, adm, dialout, netdev]
 # does not claim the EW-7811Un (7392:7811).
 usb_wifi_blacklist: [rtl8xxxu, 8192cu]
 usb_wifi_driver: rtl8192cu
+# The dongle is out: travelstar reaches the internet over the uplink below.
+usb_wifi_watchdog: false
+
+# The exhibition network's wire, on a USB Gigabit adapter (RTL8153).
+uplink_mac: 00:e0:4c:68:3a:b9
+uplink_address: 10.1.73.2/8
+uplink_gateway: 10.0.0.1
+uplink_dns: [10.0.0.1]
 
 # The DECserver 200/MC, 08:00:2b:06:9b:9e.
 mop_files:

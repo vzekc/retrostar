@@ -12,7 +12,8 @@ is one. [`router.yml`](router.yml) sets them up:
 
 | Role | What it does | Settings |
 |---|---|---|
-| `usb_wifi` | keeps the wrong drivers off a wifi dongle | `usb_wifi_blacklist` |
+| `uplink` | a USB Ethernet adapter, known by its MAC address, as the uplink with a static address | `uplink_mac`, `uplink_address`, `uplink_gateway`, `uplink_dns` |
+| `usb_wifi` | keeps the wrong drivers off a wifi dongle, and a watchdog that reloads its driver when the wifi stays down | `usb_wifi_blacklist`, `usb_wifi_driver`, `usb_wifi_watchdog` |
 | `retrostar_client` | `retrostar-client` from the RetroStar apt repository, its configuration fetched with the installation key | `retrostar_install_key_file` |
 | `mop` | `mopd` on the bridge, serving files from [`files/mop`](files/mop) | `mop_files` |
 | `lat` | `latticed` on the bridge, offering LAT services carried to telnet hosts | `lat_services`, `lat_node` |

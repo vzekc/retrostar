@@ -20,6 +20,9 @@
         loop_var: router_role
       tags: extra
   roles:
+    - role: uplink
+      tags: uplink
+      when: uplink_mac | length > 0
     - role: usb_wifi
       tags: wifi
     - role: retrostar_client

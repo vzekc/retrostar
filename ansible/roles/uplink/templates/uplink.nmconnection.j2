@@ -1,0 +1,17 @@
+{{ ansible_managed | comment }}
+[connection]
+id=uplink
+type=ethernet
+autoconnect=true
+
+[ethernet]
+mac-address={{ uplink_mac | upper }}
+
+[ipv4]
+method=manual
+address1={{ uplink_address }}
+gateway={{ uplink_gateway }}
+dns={{ uplink_dns | join(';') }};
+
+[ipv6]
+method=ignore

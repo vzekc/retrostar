@@ -1,0 +1,9 @@
+# A wired uplink: a USB Ethernet adapter on the network that carries the
+# router to the internet, with a static address. The adapter is known by its
+# MAC address, so the Pi's own Ethernet port stays the bridge's whatever the
+# kernel names the two. Empty uplink_mac, the router's uplink is its wifi.
+uplink_mac: ''
+# The router's address with its prefix length, as 10.1.73.2/8.
+uplink_address: ''
+uplink_gateway: ''
+uplink_dns: []

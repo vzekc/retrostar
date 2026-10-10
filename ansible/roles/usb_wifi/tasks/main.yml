@@ -10,7 +10,7 @@
   when: usb_wifi_blacklist | length > 0
 
 - name: Install the wifi watchdog
-  when: usb_wifi_driver | length > 0
+  when: usb_wifi_watchdog and usb_wifi_driver | length > 0
   block:
     - name: Install the watchdog script
       template:
@@ -51,4 +51,32 @@
         name: retrostar-wifi-watchdog.timer
         state: started
         enabled: true
+        daemon_reload: true
+
+- name: Remove the wifi watchdog
+  when: not usb_wifi_watchdog
+  block:
+    - name: Stop the watchdog
+      systemd_service:
+        name: retrostar-wifi-watchdog.timer
+        state: stopped
+        enabled: false
+      failed_when: false
+
+    - name: Remove the watchdog's files
+      file:
+        path: '{{ item }}'
+        state: absent
+      loop:
+        - /etc/systemd/system/retrostar-wifi-watchdog.timer
+        - /etc/systemd/system/retrostar-wifi-watchdog.service
+        - /usr/local/sbin/retrostar-wifi-watchdog
+
+    - name: Forget the watchdog's failed runs
+      command: systemctl reset-failed retrostar-wifi-watchdog.service
+      failed_when: false
+      changed_when: false
+
+    - name: Reload systemd
+      systemd_service:
         daemon_reload: true
