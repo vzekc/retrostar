@@ -123,17 +123,29 @@
     const names = {}
     ;(block.hosts || []).forEach((h) => (names[h.node_number] = h))
 
-    const div = document.createElement('div')
+    const div = element('div', { className: 'host-list' })
     for (let n = block.start_node; n <= block.end_node; n++) {
       const host = names[n]
-      const btn = element('button', {
-        type: 'button',
-        className: 'node-btn' + (host ? ' named' : ''),
-        textContent: host ? `${host.name} (23.${n})` : `23.${n}`,
-        title: 'Knoten verwalten',
-      })
+      const children = [
+        element('span', { className: 'host-node', textContent: '23.' + n }),
+      ]
+      if (host) {
+        children.unshift(
+          element('span', { className: 'host-name', textContent: host.name }),
+          ' '
+        )
+      }
+      if (host?.gateway) children.push(' ', gatewayBadge())
+      const btn = element(
+        'button',
+        {
+          type: 'button',
+          className: 'host-entry' + (host ? '' : ' free'),
+          title: 'Knoten verwalten',
+        },
+        children
+      )
       btn.dataset.node = n
-      if (host?.gateway) btn.appendChild(gatewayBadge())
       btn.onclick = () => openOwnDialog(n)
       div.appendChild(btn)
     }
