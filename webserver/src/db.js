@@ -293,6 +293,19 @@ const getUserId = async (username) =>
     return result.rows[0]?.id
   })
 
+// The id of the user named username, creating the user when there is none.
+const ensureUserId = async (username) =>
+  withClient(async (client) => {
+    const result = await client.query(
+      `INSERT INTO "user" (name)
+       VALUES ($1)
+       ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+       RETURNING id`,
+      [username]
+    )
+    return result.rows[0].id
+  })
+
 // The blocks with their named hosts. Each host says whether a gateway client
 // uses it; with withActivity, also when its machine was last seen on the
 // bridge.
@@ -488,6 +501,7 @@ module.exports = {
   setDecnetHostName,
   removeDecnetHostName,
   getUserBlockCount,
+  ensureUserId,
   setUserAdmin,
   getUserAdmin,
 }

@@ -87,9 +87,8 @@ const verifyForumLogin = async (
     })
   }
   const isAdmin = /^(Vorstand|Administrator)$/.test(claims.rank)
-  if (userId) {
-    await db.setUserAdmin(userId, isAdmin)
-  }
+  const id = userId || (await db.ensureUserId(username))
+  await db.setUserAdmin(id, isAdmin)
   await event.publish(
     'web-login',
     `${username} hat sich über das Forum auf dem Webserver angemeldet.`,
@@ -97,7 +96,7 @@ const verifyForumLogin = async (
   )
   return verified(null, {
     username: username,
-    id: userId,
+    id,
     is_admin: isAdmin,
   })
 }
