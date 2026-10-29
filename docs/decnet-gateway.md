@@ -64,11 +64,25 @@ client per node. `update_gateway_host(mac)` creates or touches the `host` row
 of a MAC learned on the gateway's bridge port, owned by the owner of the
 active client with that MAC; MACs without one are ignored.
 
+## Pages
+
+The node dialog on `/decnet` (a modal `<dialog>`; Escape closes it) is the
+main place to manage a node: it names or renames the node and removes its
+name, creates a gateway key in one step (naming the node first if needed),
+and for a node with a client shows its live status, rekeys and revokes. A
+new key's connection line, QR code and `.dngw` download appear in the dialog
+once. Tiles of nodes with an active client carry a small badge. Other
+members' nodes open a read-only dialog (name, address, owner, when the
+machine was last seen on the bridge) for logged-in visitors; logged-out
+visitors get no dialog. `public/js/dngw.js` holds what both pages share.
+
 ## Routes
 
 | Route | Who | |
 |---|---|---|
-| `GET /decnet-gateway` | member | the page (`templates/decnet-gateway.html`, `public/js/decnet-gateway.js`), linked from `/decnet` and from each node of the member's block |
+| `GET /decnet` | anyone | the address directory; a logged-in member's click on a node of their own block opens the node dialog, on another member's node a read-only one |
+| `GET /decnet-gateway` | member (login required) | the overview of the member's clients (`templates/decnet-gateway.html`, `public/js/decnet-gateway.js`) |
+| `GET /api/decnet/blocks` | anyone | each host with `gateway` (an active client uses it) and, for logged-in visitors, `last_seen` of its machine on the bridge |
 | `GET /api/decnet/gateway-clients` | member | `{gateway: {available, version}, clients, nodes}`: own active clients, own nodes with their names, clients and recently seen machines; an admin's `?all=1` lists every member's clients |
 | `POST /api/decnet/gateway-clients` | member | `{node_number, name, move?}` → 201 `{client, line, qr_svg}` |
 | `POST /api/decnet/gateway-clients/:id/rekey` | owner, admin | → `{client, line, qr_svg}`; 429 after ten a day |

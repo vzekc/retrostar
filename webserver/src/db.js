@@ -293,7 +293,10 @@ const getUserId = async (username) =>
     return result.rows[0]?.id
   })
 
-const getDecnetBlocks = async (client) => {
+// The blocks with their named hosts. Each host says whether a gateway client
+// uses it; with withActivity, also when its machine was last seen on the
+// bridge.
+const getDecnetBlocks = async (client, { withActivity } = {}) => {
   const result = await client.query(
     `SELECT
        b.id,
@@ -304,7 +307,12 @@ const getDecnetBlocks = async (client) => {
        b.created_at,
        COALESCE(
          json_agg(
-           json_build_object('node_number', h.node_number, 'name', h.name)
+           json_build_object(
+             'node_number', h.node_number,
+             'name', h.name,
+             'gateway', c.id IS NOT NULL,
+             'last_seen', CASE WHEN $1 THEN m.last_seen END
+           )
            ORDER BY h.node_number
          ) FILTER (WHERE h.node_number IS NOT NULL),
          '[]'
@@ -312,8 +320,12 @@ const getDecnetBlocks = async (client) => {
      FROM decnet_block b
      JOIN "user" u ON u.id = b.user_id
      LEFT JOIN decnet_host h ON h.block_id = b.id
+     LEFT JOIN decnet_gateway_client c
+            ON c.node_number = h.node_number AND c.revoked_at IS NULL
+     LEFT JOIN host m ON m.mac_address = decnet_mac(h.node_number)
      GROUP BY b.id, u.name
-     ORDER BY b.start_node`
+     ORDER BY b.start_node`,
+    [!!withActivity]
   )
   return result.rows
 }

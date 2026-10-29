@@ -56,6 +56,12 @@ describe('DECnet gateway clients', () => {
       expect(response.text).to.contain('decnet-gateway.js')
     })
 
+    it('sends visitors who are not logged in to the login', async () => {
+      const response = await supertest(server).get('/decnet-gateway')
+      expect(response.status).to.equal(302)
+      expect(response.headers.location).to.match(/^\/login/)
+    })
+
     it('lists no nodes and reports the gateway unavailable', async () => {
       const response = await alice.get('/api/decnet/gateway-clients')
       expect(response.status).to.equal(200)
@@ -155,6 +161,28 @@ describe('DECnet gateway clients', () => {
         [node]
       )
       expect(host.name).to.equal('ALPHA')
+    })
+
+    it('marks the node in the block list, its activity for members only', async () => {
+      const node = (body) =>
+        body
+          .find(({ id }) => id === block.id)
+          .hosts.find(({ node_number }) => node_number === alpha.node_number)
+      await query(
+        `INSERT INTO host (user_id, mac_address)
+         VALUES ((SELECT id FROM "user" WHERE name = 'gwalice'), decnet_mac($1))`,
+        [alpha.node_number]
+      )
+      const member = node((await bob.get('/api/decnet/blocks')).body)
+      expect(member.gateway).to.equal(true)
+      expect(member.last_seen).to.be.a('string')
+      const visitor = node(
+        (await supertest(server).get('/api/decnet/blocks')).body
+      )
+      expect(visitor).to.include({ gateway: true, last_seen: null })
+      await query('DELETE FROM host WHERE mac_address = decnet_mac($1)', [
+        alpha.node_number,
+      ])
     })
 
     it('lists the member’s client and the node as taken', async () => {

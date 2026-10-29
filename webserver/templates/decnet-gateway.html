@@ -35,22 +35,7 @@
     eingerichtet werden, wenn es läuft.
   </p>
 
-  <div id="gw-issued" class="gw-issued" style="display:none">
-    <h4>Verbindungszeile für <span id="gw-issued-name"></span></h4>
-    <p>
-      <strong>Diese Zeile enthält den Schlüssel und wird nur jetzt
-      angezeigt.</strong> RetroStar speichert ihn nicht. Trage sie im Client
-      ein, lade sie als Datei herunter oder scanne den QR-Code. Geht sie
-      verloren, erzeuge einen neuen Schlüssel.
-    </p>
-    <pre id="gw-issued-line" class="gw-line"></pre>
-    <div id="gw-issued-qr" class="gw-qr"></div>
-    <p>
-      <button id="gw-download" class="function">Als .dngw-Datei herunterladen</button>
-      <button id="gw-copy" class="function">Kopieren</button>
-      <button id="gw-dismiss" class="function">Fertig</button>
-    </p>
-  </div>
+  <div id="gw-issued" aria-live="polite"></div>
 
   <h4>Deine Zugänge</h4>
   <table id="gw-clients-table">
@@ -108,4 +93,5 @@
       : 'null'
   %>;
 </script>
+<script src="/js/dngw.js"></script>
 <script src="/js/decnet-gateway.js"></script>

@@ -126,9 +126,136 @@ button.function:hover {
   margin-top: 0;
 }
 
-.gw-link {
-  font-size: 11px;
-  margin: 0 6px 0 0;
-  color: #07d;
-  text-decoration: none;
+.node-btn,
+.host-entry {
+  position: relative;
+}
+
+button.host-entry {
+  border: 0;
+  cursor: pointer;
+  font-family: 'Helvetica', sans-serif;
+}
+
+button.host-entry:hover {
+  background-color: #d0e8ff;
+}
+
+.node-btn:focus-visible,
+button.host-entry:focus-visible {
+  outline: 2px solid #09f;
+  outline-offset: 1px;
+}
+
+/* A small mark on a node that has a gateway client. */
+.gw-badge {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 5px;
+  border-radius: 50%;
+  background-color: #09f;
+  box-shadow: 0 0 0 2px rgba(0, 153, 255, 0.25);
+  vertical-align: middle;
+}
+
+.gw-badge-legend {
+  white-space: nowrap;
+}
+
+.node-dialog {
+  max-width: 640px;
+  width: calc(100% - 32px);
+  padding: 20px 24px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.node-dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.35);
+}
+
+.node-dialog h3 {
+  margin-top: 0;
+}
+
+.node-dialog-section {
+  margin: 12px 0;
+  padding-top: 8px;
+  border-top: 1px solid #e4e4e4;
+}
+
+.node-dialog-section h4 {
+  margin: 4px 0 8px;
+}
+
+.node-dialog .gw-facts th {
+  text-align: left;
+  padding-right: 16px;
+  font-weight: normal;
+  color: #666;
+}
+
+.node-dialog-hint {
+  font-size: 14px;
+  color: #555;
+}
+
+.node-dialog-secondary {
+  font-size: 13px;
+  padding: 4px 8px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background-color: #f8f8f8;
+}
+
+button.function.node-dialog-danger {
+  background-color: #c33;
+}
+
+button.function.node-dialog-danger:hover {
+  background-color: #a22;
+}
+
+.node-dialog-confirm {
+  padding: 8px 12px;
+  background-color: #fff8f0;
+  border: 1px solid #e0d0c0;
+  border-radius: 4px;
+}
+
+.node-dialog-footer {
+  text-align: right;
+}
+
+.node-dialog .error:empty {
+  display: none;
+}
+
+.node-dialog p,
+.node-dialog label,
+.node-dialog td,
+.node-dialog th {
+  line-height: 1.4;
+}
+
+.node-dialog-check {
+  display: block;
+  font-size: 15px;
+  margin: 8px 0;
+}
+
+.node-dialog .gw-facts {
+  width: 100%;
+}
+
+.node-dialog .gw-facts th {
+  width: 11em;
+}
+
+.node-dialog-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

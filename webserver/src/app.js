@@ -274,6 +274,12 @@ router.get('/hostinfo/:mac_address', async (ctx, next) => {
   await next()
 })
 
+// Registered ahead of the generic page route, which would otherwise render
+// the page for visitors who are not logged in.
+router.get('/decnet-gateway', isAuthenticated, async (ctx, next) => {
+  await next()
+})
+
 router.get('/:page/:arg?', (ctx, next) => {
   if (ctx.params.page === 'auth') {
     return next()
@@ -447,12 +453,10 @@ router.get('/decnet', isAuthenticated, async (ctx, next) => {
   await next()
 })
 
-router.get('/decnet-gateway', isAuthenticated, async (ctx, next) => {
-  await next()
-})
-
 router.get('/api/decnet/blocks', async (ctx) => {
-  const blocks = await db.getDecnetBlocks(ctx.state.db)
+  const blocks = await db.getDecnetBlocks(ctx.state.db, {
+    withActivity: !!ctx.state.user,
+  })
   ctx.body = blocks
 })
 

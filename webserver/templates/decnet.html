@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="/decnet.css">
+<link rel="stylesheet" href="/decnet-gateway.css">
 
 <h3>DECnet-Adressverzeichnis (Area 23)</h3>
 
@@ -8,8 +9,15 @@
 </p>
 
 <p>
-  Rechner ohne OpenVPN-Anbindung erreichen das Netz als Knoten Deines Blocks
-  über das <a href="/decnet-gateway">DECnet-Gateway</a>.
+  Rechner ohne OpenVPN-Anbindung erreichen das Netz als Knoten eines Blocks
+  über das DECnet-Gateway.
+  <% if (typeof user === 'object') { %>
+  Klicke auf einen Knoten Deines Blocks, um ihn zu benennen oder ihm einen
+  Gateway-Schlüssel zu geben; Deine Zugänge im Überblick zeigt die Seite
+  <a href="/decnet-gateway">DECnet-Gateway</a>.
+  <% } %>
+  <span class="gw-badge-legend"><span class="gw-badge" aria-hidden="true"></span>
+  markiert Knoten mit Gateway-Zugang.</span>
 </p>
 
 <div id="decnet-app">
@@ -47,6 +55,15 @@
   <% } %>
 
   <div id="error-message" class="error" style="display:none"></div>
+
+  <dialog id="node-dialog" class="node-dialog" aria-labelledby="node-dialog-title">
+    <h3 id="node-dialog-title"></h3>
+    <div id="node-dialog-body"></div>
+    <p id="node-dialog-error" class="error" role="alert"></p>
+    <div class="node-dialog-footer">
+      <button type="button" id="node-dialog-close" class="function">Schließen</button>
+    </div>
+  </dialog>
 </div>
 
 <script>
@@ -56,4 +73,5 @@
       : 'null'
   %>;
 </script>
+<script src="/js/dngw.js"></script>
 <script src="/js/decnet.js"></script>
