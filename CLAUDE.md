@@ -62,6 +62,7 @@ The server interacts with Linux-specific tools at runtime:
 - `tcpdump` on `br0` for protocol monitoring
 - latticed's user socket for LAT terminal sessions and the list of LAT services
 - TAP interface files in `/var/run/retrostar/clients/`
+- decnet-gateway's control socket for members' DECnet gateway clients (`docs/decnet-gateway.md`)
 
 These won't be available in typical development environments; the webserver still starts but bridge/protocol features will be inactive.
 
