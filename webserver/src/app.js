@@ -16,10 +16,12 @@ const OIDCStrategy = require('passport-openidconnect').Strategy
 const sanitizeHtml = require('sanitize-html')
 const path = require('path')
 const Ajv = require('ajv')
+const QRCode = require('qrcode')
 
 const db = require('./db')
 const event = require('./event')
 const lattice = require('./lattice')
+const gatewayClients = require('./gatewayClients')
 
 const app = websockify(new Koa())
 const router = new Router()
@@ -36,6 +38,8 @@ app.use(
     jsonLimit: '20mb',
     textLimit: '20mb',
     formLimit: '20mb',
+    // DELETE carries a body where the reason for a revocation goes.
+    parsedMethods: ['POST', 'PUT', 'PATCH', 'DELETE'],
   })
 )
 app.use(koaStatic(resolvePath('public')))
@@ -443,6 +447,10 @@ router.get('/decnet', isAuthenticated, async (ctx, next) => {
   await next()
 })
 
+router.get('/decnet-gateway', isAuthenticated, async (ctx, next) => {
+  await next()
+})
+
 router.get('/api/decnet/blocks', async (ctx) => {
   const blocks = await db.getDecnetBlocks(ctx.state.db)
   ctx.body = blocks
@@ -491,6 +499,13 @@ router.post('/api/decnet/blocks', isAuthenticated, async (ctx) => {
 })
 
 router.delete('/api/decnet/blocks/:id', isAdmin, async (ctx) => {
+  await gatewayClients.revokeBlockClients(
+    ctx.state.db,
+    ctx.params.id,
+    ctx.state.user.id,
+    'Block freigegeben'
+  )
+  await gatewayClients.detachRevokedFromBlock(ctx.state.db, ctx.params.id)
   const block = await db.releaseDecnetBlock(ctx.state.db, ctx.params.id)
   if (!block) {
     ctx.status = 404
@@ -507,6 +522,17 @@ router.put('/api/decnet/blocks/:id', isAdmin, async (ctx) => {
     ctx.body = { error: 'username is required' }
     return
   }
+  if (!(await db.getUserId(username))) {
+    ctx.status = 404
+    ctx.body = { error: 'Block or user not found' }
+    return
+  }
+  await gatewayClients.revokeBlockClients(
+    ctx.state.db,
+    ctx.params.id,
+    ctx.state.user.id,
+    'Block neu zugewiesen'
+  )
   const block = await db.reassignDecnetBlock(
     ctx.state.db,
     ctx.params.id,
@@ -539,6 +565,11 @@ router.put('/api/decnet/hosts/:nodeNumber', isAuthenticated, async (ctx) => {
     ctx.body = { error: 'You do not own a block containing this node' }
     return
   }
+  await ctx.state.db.query(
+    `UPDATE decnet_gateway_client SET name = $2
+     WHERE node_number = $1 AND revoked_at IS NULL`,
+    [nodeNumber, host.name]
+  )
   ctx.body = host
 })
 
@@ -556,6 +587,15 @@ router.delete('/api/decnet/hosts/:nodeNumber', isAuthenticated, async (ctx) => {
     ctx.body = { error: 'You do not own a block containing this node' }
     return
   }
+  if (await gatewayClients.nodeHasActiveClient(ctx.state.db, nodeNumber)) {
+    ctx.status = 409
+    ctx.body = {
+      error:
+        'Dieser Knoten hat einen Gateway-Zugang. Widerrufe ihn, bevor Du den Namen entfernst.',
+    }
+    return
+  }
+  await gatewayClients.detachRevokedFromNode(ctx.state.db, nodeNumber)
   const host = await db.removeDecnetHostName(ctx.state.db, nodeNumber)
   if (!host) {
     ctx.status = 404
@@ -564,6 +604,121 @@ router.delete('/api/decnet/hosts/:nodeNumber', isAuthenticated, async (ctx) => {
   }
   ctx.status = 204
 })
+
+// DECnet gateway clients
+
+const gatewayRoute =
+  (handler) =>
+  async (ctx, ...args) => {
+    try {
+      await handler(ctx, ...args)
+    } catch (e) {
+      if (e instanceof gatewayClients.HttpError) {
+        ctx.status = e.status
+        ctx.body = { error: e.message, code: e.error, ...(e.details || {}) }
+      } else {
+        throw e
+      }
+    }
+  }
+
+// The connection line holds the key: it is answered once and never cached.
+const sendIssuedKey = async (ctx, status, { client, line }) => {
+  ctx.set('Cache-Control', 'no-store')
+  ctx.status = status
+  ctx.body = {
+    client,
+    line,
+    qr_svg: await QRCode.toString(line, {
+      type: 'svg',
+      errorCorrectionLevel: 'M',
+      margin: 2,
+    }),
+  }
+}
+
+router.get(
+  '/api/decnet/gateway-clients',
+  isAuthenticated,
+  gatewayRoute(async (ctx) => {
+    const user = ctx.state.user
+    const all = user.is_admin && ctx.query.all === '1'
+    ctx.body = {
+      gateway: await gatewayClients.gatewayAvailable(),
+      clients: await gatewayClients.listClients(ctx.state.db, {
+        userId: user.id,
+        all,
+      }),
+      nodes: await gatewayClients.listNodes(ctx.state.db, user.id),
+      host_seen_days: gatewayClients.HOST_SEEN_DAYS,
+    }
+  })
+)
+
+router.post(
+  '/api/decnet/gateway-clients',
+  isAuthenticated,
+  gatewayRoute(async (ctx) => {
+    const { node_number, name, move } = ctx.request.body || {}
+    const issued = await gatewayClients.createClient(ctx.state.user, {
+      node_number,
+      name,
+      move: move === true,
+    })
+    await sendIssuedKey(ctx, 201, issued)
+    const { client } = issued
+    await event.publish(
+      'decnet-gateway-client',
+      `${client.owner} hat einen Gateway-Zugang für ${client.name} (${client.address}) eingerichtet`,
+      { username: client.owner, name: client.name, address: client.address }
+    )
+  })
+)
+
+router.post(
+  '/api/decnet/gateway-clients/:id/rekey',
+  isAuthenticated,
+  gatewayRoute(async (ctx) => {
+    const issued = await gatewayClients.rekeyClient(
+      ctx.state.user,
+      ctx.params.id
+    )
+    await sendIssuedKey(ctx, 200, issued)
+  })
+)
+
+router.delete(
+  '/api/decnet/gateway-clients/:id',
+  isAuthenticated,
+  gatewayRoute(async (ctx) => {
+    const reason = ctx.request.body?.reason
+    await gatewayClients.revokeClient(
+      ctx.state.db,
+      ctx.state.user,
+      ctx.params.id,
+      typeof reason === 'string' ? reason.slice(0, 500) : null
+    )
+    ctx.status = 204
+    await event.publish(
+      'decnet-gateway-client',
+      `${ctx.state.user.username} hat einen Gateway-Zugang widerrufen`,
+      { username: ctx.state.user.username }
+    )
+  })
+)
+
+router.get(
+  '/api/decnet/gateway-clients/:id/status',
+  isAuthenticated,
+  gatewayRoute(async (ctx) => {
+    ctx.set('Cache-Control', 'no-store')
+    ctx.body = await gatewayClients.clientStatus(
+      ctx.state.db,
+      ctx.state.user,
+      ctx.params.id
+    )
+  })
+)
 
 // Article upload/download
 router.post('/api/article', isAuthenticated, async (ctx) => {

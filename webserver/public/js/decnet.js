@@ -133,6 +133,12 @@
         btn.onclick = () => promptHostName(n, '')
       }
       div.appendChild(btn)
+      const gatewayLink = document.createElement('a')
+      gatewayLink.className = 'gw-link'
+      gatewayLink.href = '/decnet-gateway?node=' + n
+      gatewayLink.textContent = 'GW'
+      gatewayLink.title = 'Gateway-Zugang für 23.' + n
+      div.appendChild(gatewayLink)
     }
     td.appendChild(div)
   }

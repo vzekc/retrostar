@@ -1,0 +1,111 @@
+<link rel="stylesheet" href="/decnet.css">
+<link rel="stylesheet" href="/decnet-gateway.css">
+
+<h3>DECnet-Gateway</h3>
+
+<p>
+  Über das DECnet-Gateway erreicht ein Rechner das RetroStar-Netz als
+  DECnet-Knoten, ohne OpenVPN und ohne Router: Er braucht nur UDP ins
+  Internet. Jeder Zugang ist ein benannter Knoten aus Deinem
+  <a href="/decnet">DECnet-Adressblock</a> und bekommt einen eigenen
+  Schlüssel. Der Knoten ist ein Endknoten (kein Router).
+</p>
+
+<p class="gw-notice">
+  <strong>Verschlüsselt ist nur der Weg über das Internet.</strong>
+  Das Gateway verschlüsselt die Pakete zwischen Deinem Rechner und dem
+  RetroStar-Server. Im RetroStar-Netz selbst läuft DECnet unverschlüsselt,
+  wie auf jedem DECnet-LAN: Andere Teilnehmer können den Verkehr mitlesen,
+  auch Kennwörter, die Du per SET HOST oder in Zugangsdaten eingibst.
+</p>
+
+<p>
+  Empfehlung: Stelle auf dem Client die DECnet-Blockgröße (Segment Buffer
+  Size) auf <strong>1360</strong> ein. Dann passt jedes DECnet-Paket samt
+  Verschlüsselung in ein Internetpaket, auch über PPPoE oder IPv6, und muss
+  unterwegs nicht zerlegt werden (Abschnitt 5.8 der Dokumentation).
+  Wie der Client eingerichtet wird, beschreibt die
+  <a href="https://code.netzhansa.com/hanshuebner/decnet-gateway/src/branch/main/README.de.md">Dokumentation des Gateways</a>
+  (<a href="https://code.netzhansa.com/hanshuebner/decnet-gateway">englisch</a>).
+</p>
+
+<div id="gw-app">
+  <p id="gw-unavailable" class="gw-unavailable" style="display:none">
+    Das DECnet-Gateway ist zur Zeit nicht verfügbar. Zugänge können erst
+    eingerichtet werden, wenn es läuft.
+  </p>
+
+  <div id="gw-issued" class="gw-issued" style="display:none">
+    <h4>Verbindungszeile für <span id="gw-issued-name"></span></h4>
+    <p>
+      <strong>Diese Zeile enthält den Schlüssel und wird nur jetzt
+      angezeigt.</strong> RetroStar speichert ihn nicht. Trage sie im Client
+      ein, lade sie als Datei herunter oder scanne den QR-Code. Geht sie
+      verloren, erzeuge einen neuen Schlüssel.
+    </p>
+    <pre id="gw-issued-line" class="gw-line"></pre>
+    <div id="gw-issued-qr" class="gw-qr"></div>
+    <p>
+      <button id="gw-download" class="function">Als .dngw-Datei herunterladen</button>
+      <button id="gw-copy" class="function">Kopieren</button>
+      <button id="gw-dismiss" class="function">Fertig</button>
+    </p>
+  </div>
+
+  <h4>Deine Zugänge</h4>
+  <table id="gw-clients-table">
+    <thead>
+    <tr>
+      <th>Knoten</th>
+      <th>Adresse</th>
+      <th id="gw-owner-head" style="display:none">Besitzer</th>
+      <th>Fingerabdruck</th>
+      <th>Eingerichtet</th>
+      <th>Zuletzt verbunden</th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody id="gw-clients-body"></tbody>
+  </table>
+  <p id="gw-no-clients" style="display:none">Du hast noch keinen Zugang.</p>
+  <% if (typeof user === 'object' && user.is_admin) { %>
+  <label><input type="checkbox" id="gw-all"> Zugänge aller Mitglieder zeigen</label>
+  <% } %>
+
+  <div id="gw-status" class="gw-status" style="display:none"></div>
+
+  <h4>Neuer Zugang</h4>
+  <div id="gw-no-block" style="display:none">
+    <p>
+      Für einen Zugang brauchst Du einen DECnet-Adressblock.
+      <a href="/decnet">Lass Dir auf der DECnet-Seite einen Block zuweisen.</a>
+    </p>
+  </div>
+  <form id="gw-create-form" style="display:none">
+    <label>Knoten:
+      <select id="gw-node"></select>
+    </label>
+    <label>Name:
+      <input type="text" id="gw-name" class="name-input" maxlength="6"
+             pattern="[A-Za-z][A-Za-z0-9]{0,5}" required>
+    </label>
+    <div id="gw-move" class="gw-move" style="display:none">
+      <label>
+        <input type="checkbox" id="gw-move-check">
+        <span id="gw-move-text"></span>
+      </label>
+    </div>
+    <button type="submit" class="function">Zugang einrichten</button>
+  </form>
+
+  <div id="gw-error" class="error" style="display:none"></div>
+</div>
+
+<script>
+  window.DECNET_USER = <%-
+    typeof user === 'object'
+      ? JSON.stringify({ id: user.id, username: user.username, is_admin: user.is_admin || false })
+      : 'null'
+  %>;
+</script>
+<script src="/js/decnet-gateway.js"></script>

@@ -125,3 +125,10 @@ button.function:hover {
 #admin-section h4 {
   margin-top: 0;
 }
+
+.gw-link {
+  font-size: 11px;
+  margin: 0 6px 0 0;
+  color: #07d;
+  text-decoration: none;
+}

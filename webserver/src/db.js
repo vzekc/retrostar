@@ -108,12 +108,27 @@ const setPassword = async (username, password) =>
     return result.rows.length > 0
   })
 
+// Each host is recorded on its own, so that one the database refuses leaves
+// the others' records intact.
 const touchHosts = async (usersAndHosts) =>
-  withClient(async (client) =>
-    usersAndHosts.forEach(([username, hostname]) =>
-      client.query('SELECT update_host($1, $2)', [username, hostname])
-    )
-  )
+  withClient(async (client) => {
+    for (const [username, mac] of usersAndHosts) {
+      await client.query('SAVEPOINT touch_host')
+      try {
+        await client.query('SELECT update_host($1, $2)', [username, mac])
+      } catch (e) {
+        await client.query('ROLLBACK TO SAVEPOINT touch_host')
+        console.log('cannot record host', mac, 'of', username, ':', e.message)
+      }
+    }
+  })
+
+const touchGatewayHosts = async (macs) =>
+  withClient(async (client) => {
+    for (const mac of macs) {
+      await client.query('SELECT update_gateway_host($1)', [mac])
+    }
+  })
 
 const getActiveHosts = async () =>
   withClient(async (client) => {
@@ -445,6 +460,7 @@ module.exports = {
   resetPassword,
   setPassword,
   touchHosts,
+  touchGatewayHosts,
   getHost,
   getAllHosts,
   getActiveHosts,

@@ -1,8 +1,10 @@
 const bridgeInfo = require('./bridgeInfo')
+const gatewayClients = require('./gatewayClients')
 const app = require('./app')
 const event = require('./event')
 
 bridgeInfo.startHostUpdater()
+gatewayClients.startPoller()
 
 const port = process.env.PORT || 3000
 

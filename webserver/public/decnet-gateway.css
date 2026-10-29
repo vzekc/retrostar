@@ -1,0 +1,94 @@
+.gw-notice {
+  padding: 12px 16px;
+  margin: 12px 0;
+  background-color: #fff4e0;
+  border-left: 4px solid #e90;
+  font-size: 16px;
+}
+
+.gw-unavailable {
+  padding: 12px 16px;
+  margin: 12px 0;
+  background-color: #f4f4f4;
+  border-left: 4px solid #999;
+}
+
+.gw-issued {
+  padding: 16px;
+  margin: 16px 0;
+  background-color: #eef7ee;
+  border: 1px solid #9c9;
+  border-radius: 4px;
+}
+
+.gw-issued h4 {
+  margin-top: 0;
+}
+
+.gw-line {
+  font-family: monospace;
+  font-size: 14px;
+  padding: 8px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  white-space: pre-wrap;
+  word-break: break-all;
+  user-select: all;
+}
+
+.gw-qr svg {
+  width: 240px;
+  height: 240px;
+  background-color: #fff;
+}
+
+.gw-fingerprint {
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.gw-status div {
+  font-family: 'Helvetica', sans-serif;
+}
+
+.gw-status {
+  padding: 12px 16px;
+  margin: 12px 0;
+  background-color: #f0f6ff;
+  border: 1px solid #9bd;
+  border-radius: 4px;
+  font-size: 15px;
+}
+
+.gw-status table {
+  margin-top: 8px;
+}
+
+.gw-needs-rekey {
+  color: #c60;
+  font-weight: bold;
+}
+
+.gw-move {
+  margin: 8px 0;
+}
+
+#gw-app label {
+  display: inline-block;
+  margin-right: 12px;
+}
+
+#gw-app select {
+  font-size: 15px;
+  padding: 4px;
+}
+
+#gw-clients-body button {
+  font-size: 13px;
+  padding: 4px 8px;
+  margin: 2px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background-color: #f8f8f8;
+}
