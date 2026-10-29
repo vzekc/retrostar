@@ -1,6 +1,5 @@
 const supertest = require('supertest')
 const { expect } = require('chai')
-const dbFixture = require('./fixtures/db')
 const db = require('../src/db')
 const app = require('../src/app')
 const path = require('node:path')
@@ -14,7 +13,6 @@ describe('Article and Image CRUD Test', () => {
   const password = 'test'
 
   before(async () => {
-    await dbFixture.up()
     await db.withClient(async (client) => {
       await client.query('DELETE FROM "user" WHERE name = $1', [username])
       await client.query('INSERT INTO "user"(name) values($1)', [username])
@@ -23,10 +21,6 @@ describe('Article and Image CRUD Test', () => {
     const result = await request
       .post('/auth/login')
       .send({ username, password })
-  })
-
-  after(async () => {
-    await dbFixture.down()
   })
 
   it('should create a new article', async () => {

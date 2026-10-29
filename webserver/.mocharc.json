@@ -1,0 +1,4 @@
+{
+  "require": ["test/fixtures/hooks.js"],
+  "timeout": 10000
+}
