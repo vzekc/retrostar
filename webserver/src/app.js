@@ -279,7 +279,10 @@ router.get('/decnet-gateway', isAuthenticated, async (ctx, next) => {
   await next()
 })
 
-router.get('/:page/:arg?', (ctx, next) => {
+// A page is served at /<page>; only the host page takes an argument. The
+// routes registered above prepare a page's state and check the login, so
+// every other path below a page is left unmatched.
+router.get(['/:page', '/:page(hostinfo)/:arg'], (ctx, next) => {
   if (ctx.params.page === 'auth') {
     return next()
   }
