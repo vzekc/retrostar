@@ -155,42 +155,77 @@ OpenVPN TAPs through `update_host` as before.
 ## Deployment
 
 The web application deploys with every push to main (`deploy.yml`); its
-migration runs then. The gateway daemon is installed on the server
-separately, once its Debian package is published.
+migration runs then. The gateway daemon runs on the server from its Debian
+package.
 
-- [ ] Install the package from code.netzhansa.com's apt registry, which the
-      server already uses for `lattice`
+- [x] The package `decnet-gateway` from code.netzhansa.com's apt registry,
+      which the server also uses for `lattice`
       (`https://code.netzhansa.com/api/packages/hanshuebner/debian stable main`):
-      `sudo apt update && sudo apt install decnet-gateway`.
-- [ ] Configure `/etc/decnet-gateway/gateway.conf` (root's, mode 0600),
-      before any client exists, since each connection line embeds the host
-      and port:
+      `sudo apt update && sudo apt install decnet-gateway`. It installs the
+      unit, the group `decnet-gateway` and `/var/lib/decnet-gateway`.
+- [x] `/etc/decnet-gateway/gateway.conf` (the package's, which holds no
+      keys) with these two settings changed; each connection line embeds the
+      host and port:
       ```
       listen 0.0.0.0:26003
       public-host retrostar.classic-computing.de
-      public-port 26003
-      bridge br0
-      tap dngw0
-      state /var/lib/decnet-gateway/state
       ```
-      IPv6 is disabled on the server, so the gateway listens on IPv4.
-- [ ] Enable the control socket at `/run/decnet-gateway/control.sock`, group
-      `decnet-gateway`, mode 0660, and start the service:
-      `sudo systemctl enable --now decnet-gateway`; check
-      `journalctl -u decnet-gateway` (`decnet-gateway on UDP …, dngw0 in br0`).
-- [ ] Put the web server's user (`hans`, see
-      `systemd/retrostar-webserver.service`) into the group:
-      `sudo usermod -aG decnet-gateway hans`, then
-      `sudo systemctl restart retrostar-webserver`.
-- [ ] Environment of the web server (`webserver/.env`), only where the
-      defaults do not fit:
-      `DECNET_GATEWAY_SOCKET=/run/decnet-gateway/control.sock`,
-      `DECNET_GATEWAY_TAP=dngw0`.
+      The rest is the package's: `public-port 26003`, `bridge br0`,
+      `tap dngw0`, `state /var/lib/decnet-gateway/state`,
+      `clients /var/lib/decnet-gateway/clients`,
+      `control /run/decnet-gateway/control.sock`, `log-endpoints truncated`.
+      IPv6 is disabled on the server, so the gateway listens on IPv4. `dngw0`
+      has MTU 1500, as the OpenVPN TAPs, and `br0` keeps its fixed MAC.
+- [x] The drop-in
+      `/etc/systemd/system/decnet-gateway.service.d/retrostar-bridge.conf`
+      starts the gateway after `retrostar-bridge.service`, which creates
+      `br0`:
+      ```
+      [Unit]
+      Wants=retrostar-bridge.service
+      After=retrostar-bridge.service
+      ```
+- [x] The service is enabled and running; `journalctl -u decnet-gateway`
+      shows `decnet-gateway 1.1.0 on UDP 0.0.0.0:26003, dngw0 in br0`. The
+      control socket is `/run/decnet-gateway/control.sock`, group
+      `decnet-gateway`, mode 0660; `sudo decnet-gateway hello` answers.
+- [x] The web server's user `hans` (see `systemd/retrostar-webserver.service`)
+      is in the group `decnet-gateway`.
+- [x] The web server's environment, `webserver/.env` on the server (not in
+      the repository), names the socket and the TAP:
+      ```
+      DECNET_GATEWAY_SOCKET=/run/decnet-gateway/control.sock
+      DECNET_GATEWAY_TAP=dngw0
+      ```
+      Its log shows `decnet-gateway: available` after a restart.
 - [x] Hetzner Cloud firewall: inbound UDP 26003 to the server (beside the
       OpenVPN range UDP 1194–1294). Probes from outside arrive on `eth0`.
-- [ ] A host firewall on the server, if one filters input, passes UDP 26003;
-      bridge or nftables filters pass EtherTypes 6001–6004 and 9000 between
-      `br0`'s ports.
-- [ ] Check: the web server's log shows `decnet-gateway: available`;
-      `/decnet-gateway` offers the member's nodes; a test client connects,
-      appears with `last_seen`, and its machine shows up on `/status`.
+- [x] The server has no host input filter. The bridge filters on `br0`
+      (`create-bridge.sh`) drop ARP, IPv4, IPv6 and EtherTypes 88e1 and 8912;
+      DECnet, LAT, MOP and loopback pass between its ports.
+- [x] Check: a client of 23.25 created, rekeyed and revoked through
+      `src/gatewayClients.js` as `hans` connected from the Internet; its
+      endnode hellos appeared on `br0`, EUGENE (23.21) became its router,
+      `LOOP NODE EUGENE` looped through MIRROR, and its MAC showed on
+      `/status` as `hans`'s machine. Revocation removed it at the gateway.
+
+### Gateway upgrades
+
+The decnet-gateway repository's CI upgrades the gateway on the server after
+each package it publishes from `main` (README section 2.6). The server's side,
+from the repository's `deploy/retrostar/`:
+
+- [x] The account `decnet-gateway-deploy` (system account, no password,
+      shell `/bin/sh`, home `/var/lib/decnet-gateway-deploy`) with the CI key
+      in `~/.ssh/authorized_keys` (0600), restricted to the forced command
+      `sudo /usr/local/sbin/decnet-gateway-upgrade`.
+- [x] `/usr/local/sbin/decnet-gateway-upgrade` (root's, 0755) and
+      `/etc/sudoers.d/decnet-gateway-deploy` (0440), which lets the account
+      run that script as root and nothing else.
+      `sudo -u decnet-gateway-deploy sudo /usr/local/sbin/decnet-gateway-upgrade`
+      answers `decnet-gateway 1.1.0-3 is the newest version` and leaves the
+      gateway running.
+- [ ] Publishing: the secret `PACKAGE_TOKEN` in the decnet-gateway
+      repository (a Forgejo token of `hanshuebner` with `write:package`).
+- [ ] Rollout: the repository variable `RETROSTAR_DEPLOY=yes`. The secrets
+      `DEPLOY_SSH_KEY` and `DEPLOY_KNOWN_HOSTS` are set.
