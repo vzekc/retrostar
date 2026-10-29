@@ -343,6 +343,16 @@ const getDecnetBlocks = async (client, { withActivity } = {}) => {
   return result.rows
 }
 
+// The named nodes of the allocation plan, as decnet-nmld reads them.
+const getDecnetNodes = async (client) => {
+  const result = await client.query(
+    `SELECT '23.' || node_number AS address, name
+     FROM decnet_host
+     ORDER BY node_number`
+  )
+  return result.rows
+}
+
 const allocateDecnetBlock = async (client, userId) => {
   // Find next available contiguous range of 10 addresses starting from 20
   const result = await client.query(
@@ -494,6 +504,7 @@ module.exports = {
   getProtocols,
   getUserId,
   getDecnetBlocks,
+  getDecnetNodes,
   allocateDecnetBlock,
   adminAllocateDecnetBlock,
   releaseDecnetBlock,

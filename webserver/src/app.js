@@ -463,6 +463,10 @@ router.get('/api/decnet/blocks', async (ctx) => {
   ctx.body = blocks
 })
 
+router.get('/api/decnet/nodes', async (ctx) => {
+  ctx.body = await db.getDecnetNodes(ctx.state.db)
+})
+
 router.post('/api/decnet/blocks', isAuthenticated, async (ctx) => {
   const client = ctx.state.db
   const user = ctx.state.user

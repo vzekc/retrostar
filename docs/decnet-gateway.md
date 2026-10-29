@@ -143,14 +143,11 @@ OpenVPN TAPs through `update_host` as before.
 2. **Later phases:**
    - HECnet areas: clients with addresses outside area 23.
    - Routers: clients that route (`endnode_only: false`).
-   - RetroStar as DECnet node 23.1 answering NICE, so that members can
-     `COPY KNOWN NODES` from it and get the names of the allocation plan.
 
 ## Open items
 
 - How addresses outside area 23 are allocated and who approves them.
 - Which members' clients may route, and how the web application grants it.
-- Where node 23.1 runs and how it learns the names of `decnet_host`.
 
 ## Deployment
 
