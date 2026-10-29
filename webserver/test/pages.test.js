@@ -44,4 +44,10 @@ describe('pages', () => {
     const response = await supertest(server).get('/hostinfo')
     expect(response.status).to.equal(404)
   })
+
+  it('serves the DECnet page to visitors', async () => {
+    const response = await supertest(server).get('/decnet')
+    expect(response.status).to.equal(200)
+    expect(response.text).to.contain('decnet.js')
+  })
 })

@@ -456,10 +456,6 @@ const isAdmin = async (ctx, next) => {
 
 // DECnet address management
 
-router.get('/decnet', isAuthenticated, async (ctx, next) => {
-  await next()
-})
-
 router.get('/api/decnet/blocks', async (ctx) => {
   const blocks = await db.getDecnetBlocks(ctx.state.db, {
     withActivity: !!ctx.state.user,
