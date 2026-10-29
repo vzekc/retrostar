@@ -267,8 +267,13 @@ router.get('/login', (ctx, next) => {
   next()
 })
 
-router.get('/hostinfo/:mac_address', async (ctx, next) => {
-  ctx.state.host = await db.getHost(ctx.params.mac_address)
+// The host page of an unknown host, or without a host, is 404.
+router.get('/hostinfo/:mac_address?', async (ctx, next) => {
+  ctx.state.host =
+    ctx.params.mac_address && (await db.getHost(ctx.params.mac_address))
+  if (!ctx.state.host) {
+    return
+  }
   ctx.state.editable = ctx.state.user?.id === ctx.state.host?.user_id
   await next()
 })

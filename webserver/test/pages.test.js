@@ -34,4 +34,14 @@ describe('pages', () => {
     const response = await supertest(server).get('/hostinfo/aa:00:04:00:14:5c')
     expect(response.status).to.equal(200)
   })
+
+  it('answers 404 for an unknown host', async () => {
+    const response = await supertest(server).get('/hostinfo/aa:00:04:00:15:5c')
+    expect(response.status).to.equal(404)
+  })
+
+  it('answers 404 for the host page without a host', async () => {
+    const response = await supertest(server).get('/hostinfo')
+    expect(response.status).to.equal(404)
+  })
 })
