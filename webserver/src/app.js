@@ -281,6 +281,7 @@ router.get('/hostinfo/:mac_address?', async (ctx, next) => {
   if (!ctx.state.host) {
     return
   }
+  ctx.state.host.decnet = ethernetToDecnet(ctx.state.host.mac_address)
   ctx.state.editable = ctx.state.user?.id === ctx.state.host?.user_id
   await next()
 })

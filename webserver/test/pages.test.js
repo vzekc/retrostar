@@ -45,6 +45,33 @@ describe('pages', () => {
     expect(response.status).to.equal(404)
   })
 
+  it('names an unnamed host after its node in the DECnet plan', async () => {
+    await db.withClient(async (client) => {
+      await client.query(`INSERT INTO "user" (name) VALUES ('planowner')`)
+      const block = await client.query(
+        `INSERT INTO decnet_block (user_id, start_node, end_node)
+         VALUES ((SELECT id FROM "user" WHERE name = 'planowner'), 500, 509)
+         RETURNING id`
+      )
+      await client.query(
+        `INSERT INTO decnet_host (node_number, block_id, name)
+         VALUES (501, $1, 'PLANA')`,
+        [block.rows[0].id]
+      )
+      await client.query(
+        `INSERT INTO host (user_id, mac_address, last_seen, protocols)
+         VALUES ((SELECT id FROM "user" WHERE name = 'planowner'),
+                 decnet_mac(501), NOW(), '{24579}')`
+      )
+    })
+    const status = await supertest(server).get('/status')
+    expect(status.text).to.match(/>PLANA<\/td>\s*<td>23\.501<\/td>/)
+
+    const page = await supertest(server).get('/hostinfo/aa:00:04:00:f5:5d')
+    expect(page.text).to.contain('data-default="PLANA"')
+    expect(page.text).to.contain('23.501 (PLANA)')
+  })
+
   it('serves the DECnet page to visitors', async () => {
     const response = await supertest(server).get('/decnet')
     expect(response.status).to.equal(200)

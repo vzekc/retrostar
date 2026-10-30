@@ -55,3 +55,9 @@ td[data-own-mac-address="true"] {
 .save-status {
     display: none
 }
+
+/* An unnamed host shows its name in the DECnet plan. */
+td[data-field="name"]:empty::before {
+    content: attr(data-default);
+    color: grey;
+}

@@ -145,10 +145,12 @@ const getActiveHosts = async () =>
            h.blacklisted,
            u.name AS owner,
            coalesce(h.description, '') <> '' as has_description,
-           ev.vendor
+           ev.vendor,
+           dh.name AS decnet_name
        FROM host h
                 JOIN "user" u ON u.id = h.user_id
                 LEFT OUTER JOIN ethernet_vendor ev ON (h.mac_address & 'ff:ff:ff:00:00:00'::macaddr) = ev.mac_prefix
+                LEFT OUTER JOIN decnet_host dh ON decnet_mac(dh.node_number) = h.mac_address
        WHERE h.last_seen > NOW() - INTERVAL \'5 minutes\'
          AND h.protocols IS NOT NULL
        ORDER BY u.name, h.mac_address::VARCHAR`
@@ -196,11 +198,13 @@ const getHost = async (macAddress) =>
               ) AS protocols,
               h.hardware,
               h.software,
-              h.blacklisted
+              h.blacklisted,
+              dh.name AS decnet_name
           FROM
               host h
                   LEFT JOIN protocol p ON p.number = ANY(h.protocols)
                   JOIN "user" u ON u.id = h.user_id
+                  LEFT JOIN decnet_host dh ON decnet_mac(dh.node_number) = h.mac_address
           WHERE
               mac_address = $1
           GROUP BY
@@ -213,7 +217,8 @@ const getHost = async (macAddress) =>
               h.description,
               h.hardware,
               h.software,
-              h.blacklisted`,
+              h.blacklisted,
+              dh.name`,
       [macAddress]
     )
     const rows = result.rows.map((row) => {

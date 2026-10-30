@@ -7,8 +7,14 @@
 <table>
   <tr>
     <th>Name</th>
-    <td data-field="name" contenteditable="<%= editable %>"><%= host.name %></td>
+    <td data-field="name" data-default="<%= host.decnet_name %>" contenteditable="<%= editable %>"><%= host.name %></td>
   </tr>
+  <% if (host.decnet) { %>
+  <tr>
+    <th>DECnet-Adresse</th>
+    <td><%= host.decnet %><%= host.decnet_name ? ` (${host.decnet_name})` : '' %></td>
+  </tr>
+  <% } %>
   <tr>
     <th>MAC-Adresse</th>
     <td title="<%= host.vendor %>"><%= host.mac_address %></td>

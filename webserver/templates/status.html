@@ -5,6 +5,7 @@
   <thead>
   <tr>
     <th>Name</th>
+    <th>DECnet</th>
     <th>Hardware</th>
     <th>Software</th>
     <th>Protokolle</th>
@@ -18,7 +19,8 @@
       data-blacklisted="<%= host.blacklisted %>"
       data-has-description="<%= host.has_description %>"
       onclick="document.location = '/hostinfo/<%= host.mac_address %>'">
-    <td data-field="name"><%= host.name %></td>
+    <td data-field="name"><%= host.name || host.decnet_name %></td>
+    <td><%= host.decnet %></td>
     <td data-field="hardware"><%= host.hardware %></td>
     <td data-field="software"><%= host.software %></td>
     <td><%- host.protocols?.map(({ name, description}) => `<span title="${description}" class="protocol">${name}</span>`).join(' ') %>
