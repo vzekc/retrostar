@@ -22,6 +22,7 @@ const db = require('./db')
 const event = require('./event')
 const lattice = require('./lattice')
 const gatewayClients = require('./gatewayClients')
+const openvpnConfigurations = require('./openvpnConfigurations')
 
 const app = websockify(new Koa())
 const router = new Router()
@@ -182,8 +183,8 @@ router.get('/client-config/:installKey', async (ctx) => {
     ctx.type = 'text/plain'
     ctx.body = renderTemplateFile('client-config.ejs', ctx.state, {
       ...configuration,
-      ca_certificate: readFileSync('../ca/data', 'ca.crt'),
-      ta_key: readFileSync('../ca/data', 'ta.key'),
+      ca_certificate: openvpnConfigurations.caFile('ca.crt'),
+      ta_key: openvpnConfigurations.caFile('ta.key'),
     })
   } else {
     ctx.status = 404
@@ -201,15 +202,21 @@ router.get('/installation', isAuthenticated, async (ctx, next) => {
   const username = ctx.state.user.username
 
   ctx.state.installKeys = await db.getInstallKeysByUser(ctx.state.db, username)
-  if (
-    process.env.ENVIRONMENT !== 'production' &&
-    ctx.state.installKeys.length === 0
-  ) {
-    ctx.state.installKeys = ['XXXX-XXXX']
-  }
   ctx.state.installKey = ctx.state.installKeys[0]?.install_key
+  ctx.state.canSelfIssue = openvpnConfigurations.canSelfIssue(username)
 
   await next()
+})
+
+router.post('/installation', isAuthenticated, async (ctx) => {
+  if (!openvpnConfigurations.canSelfIssue(ctx.state.user.username)) {
+    ctx.status = 400
+    ctx.body =
+      'Für diesen Benutzernamen richtet ein Administrator den Zugang ein'
+    return
+  }
+  await openvpnConfigurations.createConfiguration(ctx.state.user)
+  ctx.redirect('/installation')
 })
 
 router.get('/status', async (ctx, next) => {

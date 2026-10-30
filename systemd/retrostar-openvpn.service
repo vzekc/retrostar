@@ -6,9 +6,11 @@ Requires=postgresql.service retrostar-bridge.service
 [Service]
 Type=simple
 RemainAfterExit=yes
-ExecStart=/home/hans/retrostar/start-openvpn-servers.sh
+ExecStart=/opt/retrostar/start-openvpn-servers.sh
+# Starts the servers of new configurations; the running ones stay up.
+ExecReload=/opt/retrostar/start-openvpn-servers.sh
 ExecStop=/usr/bin/pkill openvpn
-WorkingDirectory=/home/hans/retrostar
+WorkingDirectory=/opt/retrostar
 User=root
 
 [Install]

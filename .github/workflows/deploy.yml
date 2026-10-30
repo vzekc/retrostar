@@ -1,6 +1,7 @@
-# Deploys the web application to retrostar.classic-computing.de. The key may
-# run one thing on the server, deploy.sh (a forced command in authorized_keys),
-# which updates the checkout, runs the migrations and restarts the service.
+# Deploys the web application to retrostar.classic-computing.de. The key logs
+# in as the user retrostar, which owns the checkout in /opt/retrostar, and may
+# run one thing, deploy.sh (a forced command in authorized_keys), which updates
+# the checkout, runs the migrations and restarts the service.
 
 name: deploy
 
@@ -11,6 +12,7 @@ on:
       - webserver/**
       - db/**
       - deploy.sh
+      - systemd/**
       - .github/workflows/deploy.yml
   workflow_dispatch:
 
@@ -31,4 +33,4 @@ jobs:
           printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          ssh hans@retrostar.classic-computing.de deploy
+          ssh retrostar@retrostar.classic-computing.de deploy

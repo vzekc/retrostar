@@ -17,6 +17,8 @@
 
     (cd webserver && npm ci --no-audit --no-fund)
     PGDATABASE=retrostar db/migrate.sh up
+    # The unit files in /etc/systemd/system link to systemd/ in the checkout.
+    sudo systemctl daemon-reload
     sudo systemctl restart retrostar-webserver
     sleep 3
     systemctl is-active retrostar-webserver

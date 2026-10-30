@@ -3,7 +3,7 @@ Description=Create br0 bridge interface
 
 [Service]
 Type=oneshot
-ExecStart=/home/hans/retrostar/create-bridge.sh
+ExecStart=/opt/retrostar/create-bridge.sh
 
 [Install]
 WantedBy=multi-user.target

@@ -35,8 +35,23 @@ wenn Du wissen willst, wie RetroStar funktioniert.
 Bitte beachte, dass wir keine Haftung für Schäden übernehmen, die durch die Nutzung
 des RetroStar entstehen. Die Nutzung erfolgt auf eigene Gefahr.
 
+<% } else if (canSelfIssue) { %>
+
+für Dich ist noch kein Zugang zum RetroStar eingerichtet. Mit dem Zugang
+verbindest Du einen [Raspberry Pi](https://www.raspberrypi.org/products/) über
+ein VPN mit dem RetroStar-Netz; Deine Rechner hängst Du per Ethernet an den Pi.
+
+<form method="post" action="/installation">
+  <button type="submit" class="function">Zugang einrichten</button>
+</form>
+
+Danach findest Du hier die Anleitung zur Installation und Deinen
+Installationsschlüssel.
+
 <% } else { %>
 
-für Dich ist noch kein Zugang zum RetroStar eingerichtet.
+für Dich ist noch kein Zugang zum RetroStar eingerichtet. Dein Benutzername
+eignet sich nicht für die automatische Einrichtung, bitte wende Dich im Forum
+an einen Administrator.
 
 <% } %>

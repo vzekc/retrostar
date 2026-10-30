@@ -4,8 +4,8 @@ After=network.target postgresql.service retrostar-bridge.service
 Requires=postgresql.service retrostar-bridge.service
 
 [Service]
-User=hans
-WorkingDirectory=/home/hans/retrostar/webserver
+User=retrostar
+WorkingDirectory=/opt/retrostar/webserver
 ExecStart=/usr/bin/node src/protoMon.js
 Restart=always
 RestartSec=10

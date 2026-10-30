@@ -1,0 +1,10 @@
+# Started by retrostar-openvpn-reload.path. The reload runs in
+# retrostar-openvpn.service, so the OpenVPN servers it starts belong to that
+# unit.
+[Unit]
+Description=Start the RetroStar OpenVPN servers of new configurations
+After=retrostar-openvpn.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl reload retrostar-openvpn.service

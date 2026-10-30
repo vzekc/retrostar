@@ -36,6 +36,7 @@ This is a Node.js/Koa web server for RetroStar, a retro computing network platfo
 - **ethernetToDecnet.js** - Converts DECnet MAC addresses (`AA:00:04:00:xx:xx`) to DECnet node IDs (`area.node`).
 - **decnetGateway.js** - Client of the decnet-gateway daemon's control socket (`DECNET_GATEWAY_SOCKET`, default `/run/decnet-gateway/control.sock`), protocol v1.
 - **gatewayClients.js** - Members' DECnet gateway clients: creation, rekey, revocation, reconciliation with the gateway and the 10-second poller. See `../docs/decnet-gateway.md`.
+- **openvpnConfigurations.js** - Members' OpenVPN configurations: from the installation page, signs a client certificate with the CA in `../ca` (`OPENVPN_CA_DIR`), stores it and writes `ca/data/servers-changed`, which `retrostar-openvpn-reload.path` watches to start the new server.
 - **lattice.js** - Client of latticed's user socket (`LATTICE_SOCKET`, default `/run/latticed/users.sock`): lists the LAT services and opens users' sessions at its `Local>` prompt.
 
 ### Authentication

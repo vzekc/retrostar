@@ -1,0 +1,9 @@
+# The webserver writes this file after a member set up a configuration.
+[Unit]
+Description=RetroStar OpenVPN configuration changes
+
+[Path]
+PathChanged=/opt/retrostar/ca/data/servers-changed
+
+[Install]
+WantedBy=multi-user.target
