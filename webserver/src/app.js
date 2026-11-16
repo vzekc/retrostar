@@ -573,12 +573,27 @@ router.put('/api/decnet/hosts/:nodeNumber', isAuthenticated, async (ctx) => {
     return
   }
   const nodeNumber = parseInt(ctx.params.nodeNumber)
-  const host = await db.setDecnetHostName(
-    ctx.state.db,
-    ctx.state.user.id,
-    nodeNumber,
-    name
-  )
+  let host
+  await ctx.state.db.query('SAVEPOINT name_node')
+  try {
+    host = await db.setDecnetHostName(
+      ctx.state.db,
+      ctx.state.user.id,
+      nodeNumber,
+      name
+    )
+  } catch (e) {
+    await ctx.state.db.query('ROLLBACK TO SAVEPOINT name_node')
+    if (e.code === '23505') {
+      ctx.status = 409
+      ctx.body = {
+        error: `Der Name ${name} ist bereits vergeben.`,
+        code: 'name-taken',
+      }
+      return
+    }
+    throw e
+  }
   if (!host) {
     ctx.status = 403
     ctx.body = { error: 'You do not own a block containing this node' }
