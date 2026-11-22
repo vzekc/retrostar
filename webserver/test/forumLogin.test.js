@@ -44,4 +44,40 @@ describe('forum login', () => {
     expect(user).to.equal(false)
     expect(await db.getUserId('guest')).to.equal(undefined)
   })
+
+  it('records the forum nickname and email address', async () => {
+    await forumLogin({
+      nickname: 'Recorded',
+      email: 'recorded@example.org',
+      rank: 'Vereinsmitglied',
+    })
+    const [user] = await db.withClient(async (client) =>
+      db.getUsers(client, { name: 'recorded' })
+    )
+    expect(user.forum_nickname).to.equal('Recorded')
+    expect(user.email).to.equal('recorded@example.org')
+  })
+
+  it('logs in the user an administrator set up for the forum account', async () => {
+    await db.withClient((client) =>
+      client.query(
+        `INSERT INTO "user" (name, forum_nickname) VALUES ('setupname', 'Set Up Nick')`
+      )
+    )
+    const { user } = await forumLogin({
+      nickname: 'Set Up Nick',
+      rank: 'Gast',
+    })
+    expect(user.username).to.equal('setupname')
+  })
+
+  it('turns away a forum account whose name belongs to another', async () => {
+    await db.withClient((client) =>
+      client.query(
+        `INSERT INTO "user" (name, forum_nickname) VALUES ('taken', 'Someone Else')`
+      )
+    )
+    const { user } = await forumLogin({ nickname: 'Taken', rank: 'Vorstand' })
+    expect(user).to.equal(false)
+  })
 })

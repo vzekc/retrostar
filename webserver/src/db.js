@@ -471,12 +471,42 @@ const getUserBlockCount = async (client, userId) => {
   return parseInt(result.rows[0].count)
 }
 
-const setUserAdmin = async (userId, isAdmin) =>
+// The user of a forum account: the one with its nickname, or else the one
+// named after it that has no forum nickname. Answers { id, name } or
+// undefined; conflict is true when a user named after the nickname belongs to
+// another forum account.
+const findForumUser = async (nickname) =>
   withClient(async (client) => {
-    await client.query(`UPDATE "user" SET is_admin = $1 WHERE id = $2`, [
-      isAdmin,
-      userId,
-    ])
+    const result = await client.query(
+      `SELECT id, name, forum_nickname
+       FROM "user"
+       WHERE LOWER(forum_nickname) = LOWER($1) OR name = LOWER($1)
+       ORDER BY (LOWER(forum_nickname) = LOWER($1)) IS TRUE DESC`,
+      [nickname]
+    )
+    const [user] = result.rows
+    if (!user) return undefined
+    if (
+      user.forum_nickname &&
+      user.forum_nickname.toLowerCase() !== nickname.toLowerCase()
+    ) {
+      return { conflict: true }
+    }
+    return { id: user.id, name: user.name }
+  })
+
+// Records what a forum login says about the user: whether they are an
+// administrator, their forum nickname and email address.
+const setForumUser = async (userId, { isAdmin, nickname, email }) =>
+  withClient(async (client) => {
+    await client.query(
+      `UPDATE "user"
+       SET is_admin = $2,
+           forum_nickname = COALESCE($3, forum_nickname),
+           email = COALESCE($4, email)
+       WHERE id = $1`,
+      [userId, isAdmin, nickname || null, email || null]
+    )
   })
 
 const getUserAdmin = async (userId) =>
@@ -487,6 +517,52 @@ const getUserAdmin = async (userId) =>
     )
     return result.rows[0]?.is_admin || false
   })
+
+// The users for the administrators' user list: whether they have set a
+// password, their pending password reset key and their OpenVPN
+// configurations.
+const getUsers = async (client, { name } = {}) => {
+  const result = await client.query(
+    `SELECT u.name,
+            u.forum_nickname,
+            u.email,
+            u.is_admin,
+            u.password_hash IS NOT NULL AS has_password,
+            CASE WHEN u.password_reset_key_expires_at > NOW()
+                 THEN u.password_reset_key END AS password_reset_key,
+            CASE WHEN u.password_reset_key_expires_at > NOW()
+                 THEN u.password_reset_key_expires_at END
+              AS password_reset_key_expires_at,
+            COALESCE(
+              JSON_AGG(
+                JSON_BUILD_OBJECT(
+                  'name', COALESCE(oc.config_name, u.name),
+                  'config_name', oc.config_name,
+                  'port_number', oc.port_number,
+                  'install_key', oc.install_key
+                ) ORDER BY oc.port_number
+              ) FILTER (WHERE oc.user_id IS NOT NULL),
+              '[]'
+            ) AS configurations
+     FROM "user" u
+     LEFT JOIN openvpn_configuration oc ON oc.user_id = u.id
+     WHERE $1::varchar IS NULL OR u.name = $1
+     GROUP BY u.id
+     ORDER BY u.name`,
+    [name || null]
+  )
+  return result.rows
+}
+
+// A new password reset key of the user named username, valid for validFor
+// (a PostgreSQL interval).
+const requestPasswordReset = async (client, username, validFor) => {
+  const result = await client.query(
+    'SELECT request_password_reset($1, $2::interval) AS key',
+    [username, validFor]
+  )
+  return result.rows[0].key
+}
 
 module.exports = {
   connect,
@@ -518,6 +594,9 @@ module.exports = {
   removeDecnetHostName,
   getUserBlockCount,
   ensureUserId,
-  setUserAdmin,
+  setForumUser,
+  findForumUser,
   getUserAdmin,
+  getUsers,
+  requestPasswordReset,
 }

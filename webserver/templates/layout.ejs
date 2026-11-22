@@ -31,6 +31,11 @@
                     <li class="<%= page_name == "installation" ? "active" : ""; %>">
                         <a href="/installation">Installation</a>
                     </li>
+                    <% if (user.is_admin) { %>
+                        <li class="<%= page_name == "users" ? "active" : ""; %>">
+                            <a href="/users">Benutzer</a>
+                        </li>
+                    <% } %>
                 <% } %>
                 <li class="<%= page_name == "about" ? "active" : ""; %>">
                     <a href="/about">Über Retrostar</a>

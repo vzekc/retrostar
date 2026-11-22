@@ -1,0 +1,160 @@
+<%
+const deliveryErrors = {
+  'not-configured': 'Der Versand über das Forum ist nicht eingerichtet (FORUM_MESSAGE_URL, FORUM_MESSAGE_SECRET).',
+  'no-contact': 'Der Benutzer hat weder Forennamen noch E-Mail-Adresse.',
+  'unknown-recipient': 'Das Forum kennt den Forennamen nicht.',
+  'bad-signature': 'Das Forum hat die Anfrage abgelehnt (Schlüssel oder Uhrzeit stimmen nicht).',
+  'disabled': 'Im Forum ist der Empfang von RetroStar-Nachrichten abgeschaltet.',
+  'unreachable': 'Das Forum ist nicht erreichbar.',
+}
+const formatTime = (time) =>
+  time.toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })
+const suggestedClientName = (u) => {
+  const taken = new Set(u.configurations.map(({ name }) => name))
+  if (!taken.has(u.name)) return u.name
+  let n = 2
+  while (taken.has(`${u.name}-${n}`)) n++
+  return `${u.name}-${n}`
+}
+%>
+<h3>Benutzer</h3>
+
+<% if (query.deleted) { %>
+<p>Der Benutzer <%= query.deleted %> wurde gelöscht.</p>
+<% } %>
+
+<% if (selected) { %>
+<div class="user-detail">
+  <h4><%= selected.name %></h4>
+
+  <% if (query.sent === 'conversation') { %>
+  <p class="user-delivery">
+    Die Zugangsdaten wurden als Konversation im Forum an <%= selected.forum_nickname %> geschickt<% if (conversationLink) { %>
+    (<a href="<%= conversationLink %>">Konversation öffnen</a>)<% } %>.
+  </p>
+  <% } else if (query.sent === 'email') { %>
+  <p class="user-delivery">Die Zugangsdaten wurden per E-Mail an <%= selected.email %> geschickt.</p>
+  <% } else if (query.failed) { %>
+  <p class="user-delivery user-delivery-failed">
+    Die Zugangsdaten konnten nicht verschickt werden:
+    <%= deliveryErrors[query.failed] || `Fehler im Forum (${query.failed}).` %>
+    Schicke die Nachricht unten selbst.
+  </p>
+  <% } %>
+
+  <form method="post" action="/users/<%= encodeURIComponent(selected.name) %>/contact" class="user-contact">
+    <label>Forenname
+      <input type="text" name="forum_nickname" value="<%= selected.forum_nickname || '' %>">
+    </label>
+    <label>E-Mail
+      <input type="email" name="email" value="<%= selected.email || '' %>">
+    </label>
+    <button type="submit" class="function">Speichern</button>
+  </form>
+
+  <% if (selected.password_reset_key) { %>
+  <details <%= query.failed ? 'open' : '' %>>
+    <summary>Nachricht (Kennwort-Link gültig bis <%= formatTime(selected.password_reset_key_expires_at) %>)</summary>
+    <textarea id="user-message-text" readonly rows="14"><%= accountMessage(selected) %></textarea>
+    <button type="button" class="function" onclick="navigator.clipboard.writeText(document.getElementById('user-message-text').value)">Kopieren</button>
+  </details>
+  <% } %>
+
+  <h4>VPN-Zugänge</h4>
+  <% if (selected.configurations.length) { %>
+  <table class="users">
+    <tr><th>Name</th><th>Port</th><th>Installationsschlüssel</th><th></th></tr>
+    <% selected.configurations.forEach((c) => { %>
+    <tr>
+      <td><%= c.name %></td>
+      <td><%= c.port_number %></td>
+      <td><a href="/client-config/<%= c.install_key %>"><%= c.install_key %></a></td>
+      <td>
+        <form method="post"
+              action="/users/<%= encodeURIComponent(selected.name) %>/clients/<%= encodeURIComponent(c.name) %>/delete"
+              onsubmit="return confirm(this.dataset.question)"
+              data-question="VPN-Zugang <%= c.name %> entfernen? Sein Zertifikat wird widerrufen und sein Server beendet.">
+          <button type="submit" class="function">Entfernen</button>
+        </form>
+      </td>
+    </tr>
+    <% }) %>
+  </table>
+  <% } else { %>
+  <p>Keine.</p>
+  <% } %>
+  <form method="post" action="/users/<%= encodeURIComponent(selected.name) %>/clients" class="user-create">
+    <input type="text" name="name" required value="<%= suggestedClientName(selected) %>"
+           pattern="[A-Za-z0-9][A-Za-z0-9_.\-]{0,63}"
+           title="Buchstaben, Ziffern, Punkt, Unterstrich und Bindestrich">
+    <button type="submit" class="function">VPN-Zugang hinzufügen</button>
+  </form>
+</div>
+<% } %>
+
+<h4>Benutzer einrichten</h4>
+<p>
+  Legt den Benutzer an, richtet seinen VPN-Zugang ein und schickt ihm seine
+  Zugangsdaten: als Konversation im Forum, wenn ein Forenname angegeben ist,
+  sonst per E-Mail. Ohne Benutzernamen wird der Forenname in Kleinbuchstaben
+  verwendet. Für einen bestehenden Benutzer wird ergänzt, was fehlt.
+</p>
+<% if (!forumConfigured) { %>
+<p class="user-delivery-failed">
+  Der Versand über das Forum ist nicht eingerichtet; die Nachricht musst Du
+  selbst schicken.
+</p>
+<% } %>
+<form method="post" action="/users" class="user-create">
+  <input type="text" name="forum_nickname" placeholder="Forenname">
+  <input type="email" name="email" placeholder="E-Mail">
+  <input type="text" name="username"
+         pattern="[A-Za-z0-9][A-Za-z0-9_.\-]{0,63}"
+         title="Buchstaben, Ziffern, Punkt, Unterstrich und Bindestrich"
+         placeholder="Benutzername (optional)">
+  <button type="submit" class="function">Einrichten</button>
+</form>
+
+<table class="users">
+  <tr>
+    <th>Name</th>
+    <th>Forum / E-Mail</th>
+    <th>Kennwort</th>
+    <th>VPN-Zugänge</th>
+    <th></th>
+  </tr>
+  <% users.forEach((u) => { %>
+  <tr>
+    <td>
+      <a href="/users?user=<%= encodeURIComponent(u.name) %>"><%= u.name %></a>
+      <% if (u.is_admin) { %>(Admin)<% } %>
+    </td>
+    <td>
+      <%= u.forum_nickname || '' %>
+      <% if (u.forum_nickname && u.email) { %><br><% } %>
+      <%= u.email || '' %>
+    </td>
+    <td>
+      <%= u.has_password ? 'gesetzt' : 'nicht gesetzt' %>
+      <% if (u.password_reset_key) { %>
+      <br>Link gültig bis <%= formatTime(u.password_reset_key_expires_at) %>
+      <% } %>
+    </td>
+    <td>
+      <%= u.configurations.map(({ name, port_number }) => `${name} (${port_number})`).join(', ') || 'keine' %>
+    </td>
+    <td>
+      <form method="post" action="/users/<%= encodeURIComponent(u.name) %>/password-link">
+        <button type="submit" class="function">Zugangsdaten schicken</button>
+      </form>
+      <% if (u.name !== user.username) { %>
+      <form method="post" action="/users/<%= encodeURIComponent(u.name) %>/delete"
+            onsubmit="return confirm(this.dataset.question)"
+            data-question="<%= u.name %> löschen? Sein VPN-Zugang, seine DECnet-Blöcke, Gateway-Zugänge und Rechner werden entfernt.">
+        <button type="submit" class="function">Löschen</button>
+      </form>
+      <% } %>
+    </td>
+  </tr>
+  <% }) %>
+</table>

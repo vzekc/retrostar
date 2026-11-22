@@ -23,6 +23,9 @@ const event = require('./event')
 const lattice = require('./lattice')
 const gatewayClients = require('./gatewayClients')
 const openvpnConfigurations = require('./openvpnConfigurations')
+const users = require('./users')
+const forum = require('./forum')
+const { accountMessage } = require('./accountMessage')
 
 const app = websockify(new Koa())
 const router = new Router()
@@ -73,23 +76,34 @@ const verifyForumLogin = async (
   // profile information is available in the `idProfile` parameter.
 
   const claims = uiProfile._json
-  const username = claims.nickname.toLowerCase()
-  const userId = await db.getUserId(username)
+  const existing = await db.findForumUser(claims.nickname)
+  if (existing?.conflict) {
+    console.log('forum user conflicts with a user record', claims.nickname)
+    return verified(null, false, {
+      message:
+        'Dein Benutzername ist auf dem RetroStar einem anderen Forenkonto zugeordnet. Bitte wende Dich an einen Administrator.',
+    })
+  }
   if (
-    !userId &&
+    !existing &&
     !claims.rank?.match(
       /^(Fördermitglied|Schiedsrichter|Vereinsmitglied|Vorstand|Moderator|Administrator)$/
     )
   ) {
-    console.log('unauthorized forum user', username, claims.rank)
+    console.log('unauthorized forum user', claims.nickname, claims.rank)
     return verified(null, false, {
       message:
         'Dieses System ist nur für Mitglieder des VzEkC e.V. zugänglich.',
     })
   }
   const isAdmin = /^(Vorstand|Administrator)$/.test(claims.rank)
-  const id = userId || (await db.ensureUserId(username))
-  await db.setUserAdmin(id, isAdmin)
+  const username = existing?.name || claims.nickname.toLowerCase()
+  const id = existing?.id || (await db.ensureUserId(username))
+  await db.setForumUser(id, {
+    isAdmin,
+    nickname: claims.nickname,
+    email: claims.email,
+  })
   await event.publish(
     'web-login',
     `${username} hat sich über das Forum auf dem Webserver angemeldet.`,
@@ -147,9 +161,13 @@ passport.serializeUser((user, done) => {
   done(null, user)
 })
 
-// Deserialize user from session
-passport.deserializeUser((user, done) => {
-  done(null, user)
+// Deserialize user from session. The session of a deleted user ends.
+passport.deserializeUser(async (user, done) => {
+  try {
+    done(null, (await db.getUserId(user.username)) === user.id ? user : false)
+  } catch (e) {
+    done(e)
+  }
 })
 
 const isAuthenticated = async (ctx, next) => {
@@ -162,6 +180,16 @@ const isAuthenticated = async (ctx, next) => {
       ctx.status = 403
       ctx.body = 'Forbidden'
     }
+  }
+}
+
+// Administrators only
+const isAdmin = async (ctx, next) => {
+  if (ctx.isAuthenticated() && ctx.state.user?.is_admin) {
+    await next()
+  } else {
+    ctx.status = 403
+    ctx.body = 'Forbidden'
   }
 }
 
@@ -285,6 +313,127 @@ router.get('/hostinfo/:mac_address?', async (ctx, next) => {
   ctx.state.editable = ctx.state.user?.id === ctx.state.host?.user_id
   await next()
 })
+
+// User management for administrators. After an action the page shows the
+// user, how their account message was delivered and its text.
+
+const userRoute = (handler) => [
+  isAuthenticated,
+  isAdmin,
+  async (ctx) => {
+    try {
+      await handler(ctx)
+    } catch (e) {
+      if (!(e instanceof users.UserError)) throw e
+      ctx.status = 400
+      ctx.body = e.message
+    }
+  },
+]
+
+const showUser = (ctx, username, delivery) => {
+  const query = new URLSearchParams({ user: username })
+  if (delivery?.via) query.set('sent', delivery.via)
+  if (delivery?.link) query.set('link', delivery.link)
+  if (delivery?.error) query.set('failed', delivery.error)
+  ctx.redirect(`/users?${query}`)
+}
+
+const notFound = (ctx) => {
+  ctx.status = 404
+  ctx.body = 'Benutzer nicht gefunden'
+}
+
+router.get('/users', isAuthenticated, isAdmin, async (ctx, next) => {
+  ctx.state.users = await db.getUsers(ctx.state.db)
+  ctx.state.selected = ctx.state.users.find(
+    ({ name }) => name === ctx.query.user
+  )
+  ctx.state.query = ctx.query
+  // Only a link into the forum is shown as the conversation's link.
+  ctx.state.conversationLink =
+    forum.configured() &&
+    typeof ctx.query.link === 'string' &&
+    ctx.query.link.startsWith(
+      new URL(process.env.FORUM_MESSAGE_URL).origin + '/'
+    )
+      ? ctx.query.link
+      : null
+  ctx.state.forumConfigured = forum.configured()
+  ctx.state.accountMessage = accountMessage
+  await next()
+})
+
+router.post(
+  '/users',
+  ...userRoute(async (ctx) => {
+    const { username, delivery } = await users.setUp(
+      ctx.state.user,
+      ctx.request.body || {}
+    )
+    showUser(ctx, username, delivery)
+  })
+)
+
+router.post(
+  '/users/:username/contact',
+  ...userRoute(async (ctx) => {
+    const { username } = ctx.params
+    if (!(await db.getUserId(username))) return notFound(ctx)
+    await users.updateContact(ctx.state.db, username, ctx.request.body || {})
+    showUser(ctx, username)
+  })
+)
+
+router.post(
+  '/users/:username/password-link',
+  ...userRoute(async (ctx) => {
+    const { username } = ctx.params
+    if (!(await db.getUserId(username))) return notFound(ctx)
+    showUser(
+      ctx,
+      username,
+      await users.sendAccountMessage(ctx.state.user, username)
+    )
+  })
+)
+
+router.post(
+  '/users/:username/clients',
+  ...userRoute(async (ctx) => {
+    const { username } = ctx.params
+    const name = ctx.request.body?.name
+    if (!(await users.addClient(ctx.state.user, username, name))) {
+      return notFound(ctx)
+    }
+    showUser(ctx, username)
+  })
+)
+
+router.post(
+  '/users/:username/clients/:name/delete',
+  ...userRoute(async (ctx) => {
+    const { username, name } = ctx.params
+    if (!(await users.removeClient(ctx.state.user, username, name))) {
+      ctx.status = 404
+      ctx.body = 'VPN-Zugang nicht gefunden'
+      return
+    }
+    showUser(ctx, username)
+  })
+)
+
+router.post(
+  '/users/:username/delete',
+  ...userRoute(async (ctx) => {
+    const { username } = ctx.params
+    if (username === ctx.state.user.username) {
+      throw new users.UserError('Du kannst Dich nicht selbst löschen')
+    }
+    if (!(await users.remove(ctx.state.user, username))) return notFound(ctx)
+    ctx.redirect(`/users?deleted=${encodeURIComponent(username)}`)
+  })
+)
 
 // Registered ahead of the generic page route, which would otherwise render
 // the page for visitors who are not logged in.
@@ -451,16 +600,6 @@ router.post('/logout', (ctx) => {
   }
   ctx.logout(() => ctx.redirect('/'))
 })
-
-// Admin middleware
-const isAdmin = async (ctx, next) => {
-  if (ctx.isAuthenticated() && ctx.state.user?.is_admin) {
-    await next()
-  } else {
-    ctx.status = 403
-    ctx.body = 'Forbidden'
-  }
-}
 
 // DECnet address management
 

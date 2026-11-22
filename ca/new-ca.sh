@@ -36,12 +36,13 @@ openvpn --genkey --secret "$OUTPUT_TA_KEY"
 # Generate Diffie-Helman parameters
 openssl dhparam -out "$OUTPUT_DHPARAM" 2048
 
-# Generate empty CRL
-touch "$OUTPUT_CRL"
-
 # Generate empty index and initial serial number file
 touch "$OUTPUT_INDEX"
 
 # Start with index 1194, which duplicates as udp port number
 echo $(printf "%08X\n" 1194) > "$OUTPUT_SERIAL"
 echo 1000 > "$OUTPUT_CRLNUMBER"
+
+# The servers check client certificates against the CRL (crl-verify), so the
+# CA starts with an empty one
+openssl ca -config "$CA_CONF" -gencrl -out "$OUTPUT_CRL" -crldays 3650

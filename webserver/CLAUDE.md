@@ -37,11 +37,13 @@ This is a Node.js/Koa web server for RetroStar, a retro computing network platfo
 - **decnetGateway.js** - Client of the decnet-gateway daemon's control socket (`DECNET_GATEWAY_SOCKET`, default `/run/decnet-gateway/control.sock`), protocol v1.
 - **gatewayClients.js** - Members' DECnet gateway clients: creation, rekey, revocation, reconciliation with the gateway and the 10-second poller. See `../docs/decnet-gateway.md`.
 - **openvpnConfigurations.js** - Members' OpenVPN configurations: from the installation page, signs a client certificate with the CA in `../ca` (`OPENVPN_CA_DIR`), stores it and writes `ca/data/servers-changed`, which `retrostar-openvpn-reload.path` watches to start the new server.
+- **users.js** - User management by administrators (page `/users`): setting up a user with OpenVPN configuration and password link, sending the account message (`accountMessage.js`) through the forum (`forum.js`), adding and removing VPN clients, and deleting a user with everything they own.
+- **forum.js** - Client of the forum's RetroStar message endpoint (`FORUM_MESSAGE_URL`, `FORUM_MESSAGE_SECRET`): signed requests that have the forum send a conversation or an email.
 - **lattice.js** - Client of latticed's user socket (`LATTICE_SOCKET`, default `/run/latticed/users.sock`): lists the LAT services and opens users' sessions at its `Local>` prompt.
 
 ### Authentication
 
-Two passport strategies: OIDC (forum-based login checking club membership rank) and local (username/password stored in DB). Session-based.
+Two passport strategies: OIDC (forum-based login checking club membership rank) and local (username/password stored in DB). Session-based. Forum ranks Vorstand and Administrator make a user an administrator; administrators manage users on `/users` (`templates/users.html`).
 
 ### Frontend
 
