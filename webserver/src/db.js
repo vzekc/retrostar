@@ -141,6 +141,7 @@ const getActiveHosts = async () =>
            h.name,
            h.protocols,
            h.hardware,
+           h.emulated_hardware,
            h.software,
            h.blacklisted,
            u.name AS owner,
@@ -169,6 +170,7 @@ const getAllHosts = async () =>
            h.name,
            h.protocols,
            h.hardware,
+           h.emulated_hardware,
            h.software,
            h.blacklisted,
            u.name AS owner,
@@ -197,6 +199,7 @@ const getHost = async (macAddress) =>
                       ORDER BY p.number
               ) AS protocols,
               h.hardware,
+              h.emulated_hardware,
               h.software,
               h.blacklisted,
               dh.name AS decnet_name
@@ -216,6 +219,7 @@ const getHost = async (macAddress) =>
               h.name,
               h.description,
               h.hardware,
+              h.emulated_hardware,
               h.software,
               h.blacklisted,
               dh.name`,
@@ -242,7 +246,7 @@ const getHost = async (macAddress) =>
 const updateHost = async (
   username,
   macAddress,
-  { name, description, hardware, software, blacklisted }
+  { name, description, hardware, emulatedHardware, software, blacklisted }
 ) =>
   withClient(async (client) => {
     const result = await client.query(
@@ -251,12 +255,22 @@ const updateHost = async (
            description = COALESCE($4, description),
            hardware    = COALESCE($5, hardware),
            software    = COALESCE($6, software),
-           blacklisted = COALESCE($7, blacklisted)
+           blacklisted = COALESCE($7, blacklisted),
+           emulated_hardware = COALESCE($8, emulated_hardware)
        WHERE mac_address = $1
          AND user_id = (SELECT id
                         FROM "user"
                         WHERE name = $2);`,
-      [macAddress, username, name, description, hardware, software, blacklisted]
+      [
+        macAddress,
+        username,
+        name,
+        description,
+        hardware,
+        software,
+        blacklisted,
+        emulatedHardware,
+      ]
     )
     return result.rows
   })

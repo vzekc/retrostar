@@ -496,6 +496,7 @@ const validateHostUpdateSchema = new Ajv().compile({
     name: { type: 'string' },
     description: { type: 'string' },
     hardware: { type: 'string' },
+    emulatedHardware: { type: 'string' },
     software: { type: 'string' },
     blacklisted: { type: 'boolean' },
   },
