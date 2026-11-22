@@ -1,0 +1,209 @@
+/* The administrators' user list (/users). */
+
+.users-header {
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+#users-new-toggle[aria-expanded="true"] {
+    background-color: #07d;
+}
+
+.users-panel {
+    padding: 16px;
+    background-color: #f6f9fc;
+    border: 1px solid #d0dce8;
+    border-radius: 4px;
+}
+
+.users-new {
+    margin-bottom: 16px;
+}
+
+.users-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.users-form label {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    line-height: 18px;
+    color: #555;
+}
+
+.users-form input {
+    font-size: 15px;
+    padding: 4px 6px;
+    width: 200px;
+}
+
+.users-hint {
+    margin: 0 0 10px 0;
+    max-width: none;
+    font-size: 13px;
+    line-height: 18px;
+    color: #555;
+}
+
+.users-button {
+    font-family: "Helvetica", sans-serif;
+    font-size: 13px;
+    line-height: 18px;
+    padding: 4px 10px;
+    border: 1px solid #bbb;
+    border-radius: 3px;
+    background-color: #f8f8f8;
+    color: #303030;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.users-button:hover {
+    background-color: #e0e0e0;
+}
+
+.users-button-primary {
+    display: inline-block;
+    font-size: 15px;
+    padding: 6px 14px;
+    border: 0;
+    background-color: #09f;
+    color: #fff;
+}
+
+.users-button-primary:hover {
+    background-color: #07d;
+}
+
+.users-button-danger:hover {
+    background-color: #c00;
+    border-color: #c00;
+    color: #fff;
+}
+
+.users-table,
+.users-clients {
+    border-collapse: collapse;
+}
+
+.users-table th,
+.users-table td,
+.users-clients td {
+    font-size: 15px;
+    line-height: 20px;
+    padding: 6px 8px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+.users-table th {
+    border-bottom: 2px solid #303030;
+}
+
+.users-table > tbody > tr.users-row {
+    cursor: pointer;
+}
+
+.users-table > tbody > tr.users-row:hover,
+.users-table > tbody > tr.selected {
+    background-color: #e0f0ff;
+}
+
+.users-tag {
+    font-size: 11px;
+    padding: 1px 6px;
+    margin-left: 6px;
+    border-radius: 8px;
+    background-color: #ddd;
+}
+
+/* Row actions show on the row under the pointer, on the selected row and
+   while a control in the row has the focus; touch screens always show them. */
+.users-actions {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.users-actions form {
+    display: inline;
+}
+
+.users-row .users-actions > * {
+    visibility: hidden;
+}
+
+.users-row:hover .users-actions > *,
+.users-row:focus-within .users-actions > *,
+.users-row.selected .users-actions > * {
+    visibility: visible;
+}
+
+@media (hover: none) {
+    .users-row .users-actions > * {
+        visibility: visible;
+    }
+}
+
+.users-detail-row > td {
+    padding: 0 0 16px 0;
+    border-bottom: 2px solid #303030;
+}
+
+.users-detail {
+    border-top: 0;
+    border-radius: 0 0 4px 4px;
+}
+
+.users-detail section + section {
+    margin-top: 16px;
+}
+
+.users-detail h5 {
+    margin: 0 0 6px 0;
+    font-family: "Helvetica", sans-serif;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #555;
+}
+
+.users-detail p {
+    margin: 0 0 6px 0;
+    font-size: 15px;
+    line-height: 20px;
+    max-width: none;
+}
+
+.users-detail textarea {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: monospace;
+    font-size: 13px;
+    margin: 6px 0;
+}
+
+.users-detail summary {
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.users-clients {
+    width: auto;
+    margin: 0 0 8px 0;
+}
+
+.users-notice {
+    font-size: 15px;
+    line-height: 20px;
+    margin: 0 0 12px 0;
+}
+
+.users-failed {
+    color: #a00;
+}

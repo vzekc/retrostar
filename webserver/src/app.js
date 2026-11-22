@@ -336,7 +336,7 @@ const showUser = (ctx, username, delivery) => {
   if (delivery?.via) query.set('sent', delivery.via)
   if (delivery?.link) query.set('link', delivery.link)
   if (delivery?.error) query.set('failed', delivery.error)
-  ctx.redirect(`/users?${query}`)
+  ctx.redirect(`/users?${query}#user-${encodeURIComponent(username)}`)
 }
 
 const notFound = (ctx) => {

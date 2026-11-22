@@ -118,8 +118,8 @@ describe('user management', () => {
 
       const page = await admin.get(post.headers.location)
       expect(page.status).to.equal(200)
-      expect(page.text).to.contain('als Konversation im Forum an UsersNew')
-      expect(page.text).to.contain('Konversation öffnen')
+      expect(page.text).to.contain('als Konversation an UsersNew')
+      expect(page.text).to.contain('>öffnen<')
     })
 
     it('sends an email to a user without forum account', async () => {

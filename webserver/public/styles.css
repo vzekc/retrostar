@@ -262,24 +262,3 @@ footer {
 footer p {
     font-size: small;
 }
-
-/* USER MANAGEMENT */
-
-.user-message textarea {
-    width: 100%;
-    font-family: monospace;
-    box-sizing: border-box;
-}
-
-table.users form {
-    display: inline-block;
-    margin: 2px 0;
-}
-
-.user-contact label {
-    margin-right: 16px;
-}
-
-.user-delivery-failed {
-    color: #a00;
-}
